@@ -7,6 +7,8 @@ in {
       networking.useNetworkd = true;
       networking.nftables.enable = true;
       networking.firewall.checkReversePath = false;
+      networking.firewall.trustedInterfaces = [ "cn*" ];
+
       boot.kernel.sysctl = {
         "net.ipv4.ip_forward" = 1;
         "net.ipv4.conf.all.rp_filter" = 0;
@@ -25,6 +27,7 @@ in {
           ICE_SERVERS = "stun:stun.l.google.com";
         };
         serviceConfig = {
+          Restart = "always";
           EnvironmentFile = config.sops.secrets.cryonet-env.path;
           ExecStart = "${inputs'.cryonet.packages.default}/bin/cryonet ${toString nixos.id}";
         };
