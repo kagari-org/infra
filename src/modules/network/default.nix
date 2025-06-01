@@ -16,10 +16,13 @@ in {
       systemd.services.cryonet = {
         wantedBy = [ "multi-user.target" ];
         after = [ "network.target" ];
-        environment.WS_SERVERS = infra.nixos
-          |> lib.filterAttrs (n: v: n != name && v.cryonet-bootstrap)
-          |> lib.mapAttrsToList (_: v: "wss://${v.hostname}")
-          |> lib.concatStringsSep ",";
+        environment = {
+          WS_SERVERS = infra.nixos
+            |> lib.filterAttrs (n: v: n != name && v.cryonet-bootstrap)
+            |> lib.mapAttrsToList (_: v: "wss://${v.hostname}")
+            |> lib.concatStringsSep ",";
+          ICE_SERVERS = "stun:stun.l.google.com";
+        };
         serviceConfig = {
           EnvironmentFile = config.sops.secrets.cryonet-env.path;
           ExecStart = "${inputs'.cryonet.packages.default}/bin/cryonet ${name}";

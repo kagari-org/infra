@@ -1,12 +1,12 @@
 { inputs, modules, ... }: {
-  infra.nixos.template = {
-    hostname = "120.79.219.111";
-    modules = (modules [ "nixos" ]) ++ (modules [ "nixos:template" ]);
+  infra.nixos.test3 = {
+    hostname = "test3.ff.ci";
+    modules = (modules [ "nixos" ]) ++ (modules [ "nixos:test3" ]);
     cryonet-bootstrap = true;
   };
 
   infra.modules = [ {
-    tags = [ "nixos:template" ];
+    tags = [ "nixos:test3" ];
     module = {
       sops = {
         defaultSopsFile = ./secrets.yaml;

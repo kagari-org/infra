@@ -1,6 +1,6 @@
 { inputs, ... }: {
   infra.modules = [ {
-    tags = [ "nixos:template" ];
+    tags = [ "nixos:test1" ];
     module = { lib, modulesPath, ... }: {
       imports = [ (modulesPath + "/profiles/qemu-guest.nix") ];
       boot.loader.grub = {
