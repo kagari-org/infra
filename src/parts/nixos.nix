@@ -16,6 +16,11 @@ in {
         type = listOf anything;
         description = "modules";
       };
+      options.cryonet-bootstrap = lib.mkOption {
+        type = bool;
+        description = "cryonet bootstrap";
+        default = false;
+      };
     });
     description = "nixos definition";
   };

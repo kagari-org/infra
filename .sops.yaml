@@ -3,7 +3,7 @@ keys:
   - &template age1hecw4msymtrjrw5pjvv53am9atxx90ph3e9axrkrgr48f0k45g7qqm4vpz
 
 creation_rules:
-  - path_regex: src/machines/[^/]+/secrets.yaml$
+  - path_regex: src/.+/secrets.yaml$
     key_groups:
       - age:
         - *tablet
