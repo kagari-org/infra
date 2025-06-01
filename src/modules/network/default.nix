@@ -3,7 +3,7 @@
 in {
   infra.modules = [ {
     tags = [ "nixos" ];
-    module = withSystem "x86_64-linux" ({ inputs', ... }: { config, lib, name, nixos, ... }: {
+    module = withSystem "x86_64-linux" ({ inputs', ... }: { config, lib, nixos, ... }: {
       networking.useNetworkd = true;
       networking.nftables.enable = true;
       networking.firewall.checkReversePath = false;
@@ -18,14 +18,15 @@ in {
         after = [ "network.target" ];
         environment = {
           WS_SERVERS = infra.nixos
-            |> lib.filterAttrs (n: v: n != name && v.cryonet-bootstrap)
-            |> lib.mapAttrsToList (_: v: "wss://${v.hostname}")
+            |> lib.attrValues
+            |> lib.filter (x: x.id != nixos.id && x.cryonet-bootstrap)
+            |> lib.map (x: "wss://${x.hostname}")
             |> lib.concatStringsSep ",";
           ICE_SERVERS = "stun:stun.l.google.com";
         };
         serviceConfig = {
           EnvironmentFile = config.sops.secrets.cryonet-env.path;
-          ExecStart = "${inputs'.cryonet.packages.default}/bin/cryonet ${name}";
+          ExecStart = "${inputs'.cryonet.packages.default}/bin/cryonet ${toString nixos.id}";
         };
       };
 
@@ -34,6 +35,71 @@ in {
         enable = true;
         virtualHosts.${nixos.hostname}.extraConfig = ''
           reverse_proxy 127.0.0.1:2333
+        '';
+      };
+
+      systemd.network.networks.loopback = {
+        matchConfig.Name = "lo";
+        address = [ nixos.igp-v4 ];
+      };
+      services.bird = {
+        enable = true;
+        config = ''
+          router id ${nixos.igp-v4};
+          ipv4 table igp_v4;
+          ipv6 table igp_v6;
+          protocol device {}
+          protocol direct { ipv4; ipv6; }
+          protocol kernel {
+              learn;
+              ipv4 {
+                  import all;
+                  export all;
+              };
+          }
+          protocol kernel {
+              learn;
+              ipv6 {
+                  import all;
+                  export all;
+              };
+          }
+          protocol pipe {
+              table igp_v4;
+              peer table master4;
+              import none;
+              export all;
+          }
+          protocol pipe {
+              table igp_v6;
+              peer table master6;
+              import none;
+              export all;
+          }
+
+          protocol babel {
+            interface "cn*" {
+              type tunnel;
+            };
+            ipv4 {
+              table igp_v4;
+              import filter {
+                krt_prefsrc = ${nixos.igp-v4};
+                accept;
+              };
+              export where (source = RTS_STATIC) || (source = RTS_BABEL);
+            };
+            ipv6 {
+              table igp_v6;
+              import all;
+              export where (source = RTS_STATIC) || (source = RTS_BABEL);
+            };
+          }
+
+          protocol static {
+            route ${nixos.igp-v4}/32 via "lo";
+            ipv4 { table igp_v4; };
+          }
         '';
       };
     });

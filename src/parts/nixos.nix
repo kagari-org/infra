@@ -2,7 +2,11 @@
   cfg = config.infra;
 in {
   options.infra.nixos = lib.mkOption {
-    type = with lib.types; attrsOf (submodule {
+    type = with lib.types; attrsOf (submodule ({ config, ... }: {
+      options.id = lib.mkOption {
+        type = number;
+        description = "id";
+      };
       options.hostname = lib.mkOption {
         type = str;
         description = "hostname";
@@ -21,7 +25,12 @@ in {
         description = "cryonet bootstrap";
         default = false;
       };
-    });
+      options.igp-v4 = lib.mkOption {
+        type = str;
+        description = "igp v4";
+        default = "10.11.0.${toString config.id}";
+      };
+    }));
     description = "nixos definition";
   };
   config.flake = withSystem "x86_64-linux" ({ inputs', system, ... }: {
