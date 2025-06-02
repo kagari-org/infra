@@ -4,6 +4,10 @@
     hostname = "test1.ff.ci";
     modules = (modules [ "nixos" ]) ++ (modules [ "nixos:test1" ]);
     cryonet-bootstrap = true;
+    k3s = {
+      server = true;
+      endpoint = true;
+    };
   };
 
   infra.modules = [ {

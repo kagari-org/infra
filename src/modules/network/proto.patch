@@ -1,0 +1,22 @@
+diff --git a/sysdep/linux/netlink.c b/sysdep/linux/netlink.c
+index 9042a56f..a4e5c5bf 100644
+--- a/sysdep/linux/netlink.c
++++ b/sysdep/linux/netlink.c
+@@ -1476,7 +1476,7 @@ nl_send_route(struct krt_proto *p, const rte *e, int op)
+ 
+   r->r.rtm_family = p->af;
+   r->r.rtm_dst_len = net_pxlen(e->net);
+-  r->r.rtm_protocol = RTPROT_BIRD;
++  r->r.rtm_protocol = 233;
+   r->r.rtm_scope = RT_SCOPE_NOWHERE;
+ #ifdef HAVE_MPLS_KERNEL
+   if (p->af == AF_MPLS)
+@@ -1791,7 +1791,7 @@ nl_parse_route(struct nl_parse_state *s, struct nlmsghdr *h)
+       krt_src = KRT_SRC_KERNEL;
+       break;
+ 
+-    case RTPROT_BIRD:
++    case 233:
+       if (!s->scan)
+ 	SKIP("echo\n");
+       krt_src = KRT_SRC_BIRD;

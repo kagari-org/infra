@@ -17,7 +17,7 @@ in {
         default = [];
       };
       options.modules = lib.mkOption {
-        type = listOf anything;
+        type = listOf raw;
         description = "modules";
       };
       options.cryonet-bootstrap = lib.mkOption {
@@ -30,6 +30,18 @@ in {
         description = "igp v4";
         default = "10.11.0.${toString config.id}";
       };
+      options.k3s = {
+        server = lib.mkOption {
+          type = bool;
+          description = "server node";
+          default = false;
+        };
+        endpoint = lib.mkOption {
+          type = bool;
+          description = "endpoint node";
+          default = false;
+        };
+      };
     }));
     description = "nixos definition";
   };
@@ -37,7 +49,8 @@ in {
     nixosConfigurations = cfg.nixos
       |> lib.mapAttrs (name: value: inputs.nixpkgs.lib.nixosSystem {
         inherit system;
-        inherit (value) modules;
+        modules = value.modules ++ [ ({ pkgs, ... }: {}) ];
+        # inherit (value) modules;
         specialArgs = {
           inherit name;
           nixos = value;

@@ -9,7 +9,7 @@
           description = "tags of module";
         };
         options.module = lib.mkOption {
-          type = anything;
+          type = raw;
           description = "module";
         };
       });

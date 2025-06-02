@@ -1,9 +1,9 @@
-{ config, withSystem, ... }: let
+{ inputs, config, withSystem, ... }: let
   inherit (config) infra;
 in {
   infra.modules = [ {
     tags = [ "nixos" ];
-    module = withSystem "x86_64-linux" ({ inputs', ... }: { config, lib, nixos, ... }: {
+    module = withSystem "x86_64-linux" ({ inputs', ... }: { config, pkgs, lib, nixos, ... }: {
       networking.useNetworkd = true;
       networking.nftables.enable = true;
       networking.firewall.checkReversePath = false;
@@ -22,7 +22,7 @@ in {
           WS_SERVERS = infra.nixos
             |> lib.attrValues
             |> lib.filter (x: x.id != nixos.id && x.cryonet-bootstrap)
-            |> lib.map (x: "wss://${x.hostname}")
+            |> lib.map (x: "wss://${x.hostname}:18443")
             |> lib.concatStringsSep ",";
           ICE_SERVERS = "stun:stun.l.google.com";
         };
@@ -33,9 +33,24 @@ in {
         };
       };
 
-      networking.firewall.allowedTCPPorts = lib.mkIf nixos.cryonet-bootstrap [ 80 443 ];
+      networking.firewall.allowedTCPPorts = lib.mkIf nixos.cryonet-bootstrap [ 18443 ];
+      sops.secrets.caddy-env = lib.mkIf nixos.cryonet-bootstrap {
+        sopsFile = ./secrets.yaml;
+        owner = "caddy";
+        group = "caddy";
+      };
       services.caddy = lib.mkIf nixos.cryonet-bootstrap {
         enable = true;
+        package = pkgs.caddy.withPlugins {
+          plugins = [ "github.com/caddy-dns/cloudflare@v0.2.1" ];
+          hash = "sha256-Gsuo+ripJSgKSYOM9/yl6Kt/6BFCA6BuTDvPdteinAI=";
+        };
+        environmentFile = config.sops.secrets.caddy-env.path;
+        globalConfig = ''
+          http_port 18080
+          https_port 18443
+          acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
+        '';
         virtualHosts.${nixos.hostname}.extraConfig = ''
           reverse_proxy 127.0.0.1:2333
         '';
@@ -47,6 +62,9 @@ in {
       };
       services.bird = {
         enable = true;
+        package = pkgs.bird3.overrideAttrs (old: {
+          patches = old.patches ++ [ ./proto.patch ];
+        });
         config = ''
           router id ${nixos.igp-v4};
           ipv4 table igp_v4;
