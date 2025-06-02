@@ -1,15 +1,15 @@
 { self, inputs, config, lib, withSystem, ... }: let
   cfg = config.infra;
 in {
-  options.infra.nixos = lib.mkOption {
+  options.infra.nodes = lib.mkOption {
     type = with lib.types; attrsOf (submodule ({ config, ... }: {
       options.id = lib.mkOption {
         type = number;
         description = "id";
       };
-      options.hostname = lib.mkOption {
+      options.address = lib.mkOption {
         type = str;
-        description = "hostname";
+        description = "address";
       };
       options.sshOpts = lib.mkOption {
         type = listOf str;
@@ -20,7 +20,7 @@ in {
         type = listOf raw;
         description = "modules";
       };
-      options.cryonet-bootstrap = lib.mkOption {
+      options.cryonet.bootstrap = lib.mkOption {
         type = bool;
         description = "cryonet bootstrap";
         default = false;
@@ -46,21 +46,20 @@ in {
     description = "nixos definition";
   };
   config.flake = withSystem "x86_64-linux" ({ inputs', system, ... }: {
-    nixosConfigurations = cfg.nixos
-      |> lib.mapAttrs (name: value: inputs.nixpkgs.lib.nixosSystem {
+    nixosConfigurations = cfg.nodes
+      |> lib.mapAttrs (name: node: inputs.nixpkgs.lib.nixosSystem {
         inherit system;
-        modules = value.modules ++ [ ({ pkgs, ... }: {}) ];
-        # inherit (value) modules;
+        modules = node.modules ++ [ ({ pkgs, ... }: {}) ];
         specialArgs = {
-          inherit name;
-          nixos = value;
+          inherit name node;
         };
       });
-    deploy.nodes = cfg.nixos
+    deploy.nodes = cfg.nodes
       |> lib.mapAttrs (name: value: {
         sshUser = "root";
-        inherit (value) hostname sshOpts;
+        hostname = value.address;
         profiles.system.path = inputs'.deploy.lib.activate.nixos self.nixosConfigurations.${name};
+        inherit (value) sshOpts;
       });
   });
 }

@@ -1,9 +1,9 @@
 { inputs, modules, ... }: {
-  infra.nixos.test3 = {
+  infra.nodes.test3 = {
     id = 3;
-    hostname = "test3.ff.ci";
+    address = "test3.ff.ci";
     modules = (modules [ "nixos" ]) ++ (modules [ "nixos:test3" ]);
-    cryonet-bootstrap = true;
+    cryonet.bootstrap = true;
   };
 
   infra.modules = [ {

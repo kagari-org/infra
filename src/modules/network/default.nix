@@ -3,7 +3,7 @@
 in {
   infra.modules = [ {
     tags = [ "nixos" ];
-    module = withSystem "x86_64-linux" ({ inputs', ... }: { config, pkgs, lib, nixos, ... }: {
+    module = withSystem "x86_64-linux" ({ inputs', ... }: { config, pkgs, lib, node, ... }: {
       networking.useNetworkd = true;
       networking.nftables.enable = true;
       networking.firewall.checkReversePath = false;
@@ -19,27 +19,27 @@ in {
         wantedBy = [ "multi-user.target" ];
         after = [ "network.target" ];
         environment = {
-          WS_SERVERS = infra.nixos
+          WS_SERVERS = infra.nodes
             |> lib.attrValues
-            |> lib.filter (x: x.id != nixos.id && x.cryonet-bootstrap)
-            |> lib.map (x: "wss://${x.hostname}:18443")
+            |> lib.filter (x: x.id != node.id && x.cryonet.bootstrap)
+            |> lib.map (x: "wss://${x.address}:18443")
             |> lib.concatStringsSep ",";
           ICE_SERVERS = "stun:stun.l.google.com";
         };
         serviceConfig = {
           Restart = "always";
           EnvironmentFile = config.sops.secrets.cryonet-env.path;
-          ExecStart = "${inputs'.cryonet.packages.default}/bin/cryonet ${toString nixos.id}";
+          ExecStart = "${inputs'.cryonet.packages.default}/bin/cryonet ${toString node.id}";
         };
       };
 
-      networking.firewall.allowedTCPPorts = lib.mkIf nixos.cryonet-bootstrap [ 18443 ];
-      sops.secrets.caddy-env = lib.mkIf nixos.cryonet-bootstrap {
+      networking.firewall.allowedTCPPorts = lib.mkIf node.cryonet.bootstrap [ 18443 ];
+      sops.secrets.caddy-env = lib.mkIf node.cryonet.bootstrap {
         sopsFile = ./secrets.yaml;
         owner = "caddy";
         group = "caddy";
       };
-      services.caddy = lib.mkIf nixos.cryonet-bootstrap {
+      services.caddy = lib.mkIf node.cryonet.bootstrap {
         enable = true;
         package = pkgs.caddy.withPlugins {
           plugins = [ "github.com/caddy-dns/cloudflare@v0.2.1" ];
@@ -51,14 +51,14 @@ in {
           https_port 18443
           acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
         '';
-        virtualHosts.${nixos.hostname}.extraConfig = ''
+        virtualHosts.${node.address}.extraConfig = ''
           reverse_proxy 127.0.0.1:2333
         '';
       };
 
       systemd.network.networks.loopback = {
         matchConfig.Name = "lo";
-        address = [ nixos.igp-v4 ];
+        address = [ node.igp-v4 ];
       };
       services.bird = {
         enable = true;
@@ -66,7 +66,7 @@ in {
           patches = old.patches ++ [ ./proto.patch ];
         });
         config = ''
-          router id ${nixos.igp-v4};
+          router id ${node.igp-v4};
           ipv4 table igp_v4;
           ipv6 table igp_v6;
           protocol device {}
@@ -105,7 +105,7 @@ in {
             ipv4 {
               table igp_v4;
               import filter {
-                krt_prefsrc = ${nixos.igp-v4};
+                krt_prefsrc = ${node.igp-v4};
                 accept;
               };
               export where (source = RTS_STATIC) || (source = RTS_BABEL);
@@ -118,7 +118,7 @@ in {
           }
 
           protocol static {
-            route ${nixos.igp-v4}/32 via "lo";
+            route ${node.igp-v4}/32 via "lo";
             ipv4 { table igp_v4; };
           }
         '';

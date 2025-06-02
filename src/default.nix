@@ -14,7 +14,7 @@
   in regular ++ directory;
   isSubset = all: part: lib.all (lib.flip lib.elem all) part;
 in {
-  imports = (listFiles ./parts) ++ (listFiles ./modules) ++ (listFiles ./machines);
+  imports = (listFiles ./parts) ++ (listFiles ./modules) ++ (listFiles ./nodes);
   _module.args.modules = tags: config.infra.modules
     |> lib.filter (module: isSubset module.tags tags)
     |> map ({ module, ... }: module);
