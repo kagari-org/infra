@@ -25,10 +25,30 @@ in {
           "--flannel-backend=none" "--disable-network-policy" "--disable=traefik"
         ]);
         manifests = lib.mkIf node.k3s.server {
-          calico.source = pkgs.fetchurl {
-            url = "https://raw.githubusercontent.com/projectcalico/calico/v3.30.1/manifests/calico.yaml";
-            hash = "sha256-b8mamxjzufh495gfOEx7t8hpx5ptoReBoqjVC+954vs=";
-          };
+          # apply calico
+          # set ip detection method
+          calico.source = let
+            src = pkgs.fetchurl {
+              url = "https://raw.githubusercontent.com/projectcalico/calico/v3.30.1/manifests/calico.yaml";
+              hash = "sha256-b8mamxjzufh495gfOEx7t8hpx5ptoReBoqjVC+954vs=";
+            };
+          in pkgs.runCommand "calico.yaml" {
+            nativeBuildInputs = [ pkgs.yq ];
+          } ''
+            yq -y '
+              (select(.kind == "DaemonSet")
+                | select(.metadata.name == "calico-node")
+                | .spec.template.spec.containers[]
+                | select(.name == "calico-node").env)
+              += [{
+                name: "IP_AUTODETECTION_METHOD",
+                value: "kubernetes-internal-ip",
+              }, {
+                name: "IP6_AUTODETECTION_METHOD",
+                value: "kubernetes-internal-ip",
+              }]
+            ' ${src} > $out
+          '';
         };
       };
     };
