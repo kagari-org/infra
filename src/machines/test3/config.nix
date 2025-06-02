@@ -8,11 +8,6 @@
 
   infra.modules = [ {
     tags = [ "nixos:test3" ];
-    module = {
-      sops = {
-        defaultSopsFile = ./secrets.yaml;
-        secrets.hello = {};
-      };
-    };
+    module = {};
   } ];
 }
