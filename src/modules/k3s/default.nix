@@ -6,6 +6,15 @@ in {
     module = { config, pkgs, lib, node, ... }: {
       networking.firewall.trustedInterfaces = [ "cali*" ];
       sops.secrets.k3s-token.sopsFile = ./secrets.yaml;
+
+      # for longhorn
+      systemd.tmpfiles.rules = [ "L+ /usr/local/bin - - - - /run/current-system/sw/bin/" ];
+      environment.systemPackages = [ pkgs.nfs-utils ];
+      services.openiscsi = {
+        enable = true;
+        name = "${config.networking.hostName}-initiatorhost";
+      };
+
       services.k3s = let
         init-node = infra.nodes
             |> lib.attrValues
@@ -22,33 +31,37 @@ in {
         extraFlags = [
           "--node-ip=${node.igp-v4}"
         ] ++ (lib.optionals node.k3s.server [
-          "--flannel-backend=none" "--disable-network-policy" "--disable=traefik"
+          "--flannel-backend=none" "--disable-network-policy" "--disable=traefik" "--disable=local-storage"
         ]);
         manifests = lib.mkIf node.k3s.server {
           # apply calico
           # set ip detection method
           calico.source = let
-            src = pkgs.fetchurl {
+            calico = pkgs.fetchurl {
               url = "https://raw.githubusercontent.com/projectcalico/calico/v3.30.1/manifests/calico.yaml";
               hash = "sha256-b8mamxjzufh495gfOEx7t8hpx5ptoReBoqjVC+954vs=";
             };
           in pkgs.runCommand "calico.yaml" {
-            nativeBuildInputs = [ pkgs.yq ];
+            nativeBuildInputs = [ pkgs.yq-go ];
           } ''
-            yq -y '
+            yq '
               (select(.kind == "DaemonSet")
                 | select(.metadata.name == "calico-node")
                 | .spec.template.spec.containers[]
-                | select(.name == "calico-node").env)
-              += [{
-                name: "IP_AUTODETECTION_METHOD",
-                value: "kubernetes-internal-ip",
-              }, {
-                name: "IP6_AUTODETECTION_METHOD",
-                value: "kubernetes-internal-ip",
-              }]
-            ' ${src} > $out
+                | select(.name == "calico-node").env) += [{
+                  "name": "IP_AUTODETECTION_METHOD",
+                  "value": "kubernetes-internal-ip"
+                }, {
+                  "name": "IP6_AUTODETECTION_METHOD",
+                  "value": "kubernetes-internal-ip"
+                }]
+            ' ${calico} > $out
           '';
+
+          longhorn.source = pkgs.fetchurl {
+            url = "https://raw.githubusercontent.com/longhorn/longhorn/v1.9.0/deploy/longhorn.yaml";
+            hash = "sha256-N4hXJfiklJ9zh/DzGxuCForolSN+HQ9R9vHLqOwADUE=";
+          };
         };
       };
     };
