@@ -1,7 +1,14 @@
-{ inputs, ... }: {
+{ inputs, modules, ... }: {
+  infra.nodes.test3 = {
+    id = 3;
+    address = "test3.ff.ci";
+    modules = (modules [ "nixos" ]) ++ (modules [ "nixos:test3" ]);
+    cryonet.bootstrap = true;
+  };
+
   infra.modules = [ {
-    tags = [ "nixos:test2" ];
-    module = { lib, modulesPath, ... }: {
+    tags = [ "nixos:test3" ];
+    module = { modulesPath, ... }: {
       imports = [ (modulesPath + "/profiles/qemu-guest.nix") ];
       boot.loader.grub = {
         enable = true;

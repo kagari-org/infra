@@ -3,7 +3,6 @@
   inputs.flake-parts.url = "github:hercules-ci/flake-parts";
   inputs.deploy.url = "github:serokell/deploy-rs";
   inputs.sops-nix.url = "github:Mic92/sops-nix";
-
   inputs.cryonet.url = "github:kagari-org/cryonet";
 
   outputs = inputs@{
