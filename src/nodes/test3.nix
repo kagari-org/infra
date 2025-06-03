@@ -4,6 +4,7 @@
     address = "test3.ff.ci";
     modules = (modules [ "nixos" ]) ++ (modules [ "nixos:test3" ]);
     cryonet.bootstrap = true;
+    k3s.server = true;
   };
 
   infra.modules = [ {

@@ -15,6 +15,7 @@ in {
         name = "${config.networking.hostName}-initiatorhost";
       };
 
+      systemd.services.k3s.serviceConfig.TimeoutStartSec = "5m";
       services.k3s = let
         init-node = infra.nodes
             |> lib.attrValues
@@ -31,7 +32,8 @@ in {
         extraFlags = [
           "--node-ip=${node.igp-v4}"
         ] ++ (lib.optionals node.k3s.server [
-          "--flannel-backend=none" "--disable-network-policy" "--disable=traefik" "--disable=local-storage"
+          "--flannel-backend=none" "--disable-network-policy"
+          "--disable=local-storage" "--disable=traefik" "--disable=servicelb"
         ]);
         manifests = lib.mkIf node.k3s.server {
           # apply calico
