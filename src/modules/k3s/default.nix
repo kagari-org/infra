@@ -16,6 +16,7 @@ in {
       };
 
       systemd.services.k3s.serviceConfig.TimeoutStartSec = "5m";
+      systemd.services.k3s.after = [ "cryonet.service" ];
       services.k3s = let
         init-node = infra.nodes
             |> lib.attrValues

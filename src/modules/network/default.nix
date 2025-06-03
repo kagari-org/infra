@@ -49,10 +49,12 @@ in {
         globalConfig = ''
           http_port 18080
           https_port 18443
-          acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
         '';
         virtualHosts.${node.address}.extraConfig = ''
           reverse_proxy 127.0.0.1:2333
+          tls {
+            dns cloudflare {$CLOUDFLARE_API_TOKEN}
+          }
         '';
       };
 
