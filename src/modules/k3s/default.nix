@@ -3,7 +3,7 @@
 in {
   infra.modules = [ {
     tags = [ "nixos" "k3s" ];
-    module = { config, pkgs, lib, node, ... }: {
+    module = { config, pkgs, lib, name, node, ... }: {
       networking.firewall.trustedInterfaces = [ "cali*" ];
       sops.secrets.k3s-token.sopsFile = ./secrets.yaml;
 
@@ -31,7 +31,7 @@ in {
         clusterInit = init-node.id == node.id;
         serverAddr = lib.optionalString (init-node.id != node.id) "https://${init-node.igp-v4}:6443";
         extraFlags = [
-          "--node-ip=${node.igp-v4}"
+          "--node-ip=${node.igp-v4}" "--node-name=${name}"
         ] ++ (lib.optionals node.k3s.server [
           "--flannel-backend=none" "--disable-network-policy"
           "--disable=local-storage" "--disable=traefik" "--disable=servicelb"
