@@ -33,8 +33,13 @@ in {
         extraFlags = [
           "--node-ip=${node.igp-v4}" "--node-name=${name}"
         ] ++ (lib.optionals node.k3s.server [
-          "--flannel-backend=none" "--disable-network-policy"
-          "--disable=local-storage" "--disable=traefik" "--disable=servicelb"
+          "--flannel-backend=none"
+          "--disable-network-policy"
+          "--disable=coredns"
+          "--disable=local-storage"
+          "--disable=metrics-server"
+          "--disable=traefik"
+          # enabling: servicelb ccm
         ]);
         manifests = lib.mkIf node.k3s.server {
           # apply calico
