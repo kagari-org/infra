@@ -10,15 +10,6 @@
     };
     path = "tigera-operator";
   };
-  coredns = {
-    pname = "coredns";
-    version = "1.42.2";
-    src = fetchurl {
-      url = "https://github.com/coredns/helm/releases/download/coredns-1.42.2/coredns-1.42.2.tgz";
-      sha256 = "sha256-+X3hdIb1u9i6WfkJfSDeC7uFsIHIVICUzEfnzxQpca0=";
-    };
-    path = "coredns";
-  };
   longhorn = {
     pname = "longhorn";
     version = "1.9.0";

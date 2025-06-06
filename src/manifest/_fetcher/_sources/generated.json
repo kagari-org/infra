@@ -16,23 +16,6 @@
         },
         "version": "3.30.1"
     },
-    "coredns": {
-        "cargoLocks": null,
-        "date": null,
-        "extract": null,
-        "name": "coredns",
-        "passthru": {
-            "path": "coredns"
-        },
-        "pinned": false,
-        "src": {
-            "name": null,
-            "sha256": "sha256-+X3hdIb1u9i6WfkJfSDeC7uFsIHIVICUzEfnzxQpca0=",
-            "type": "url",
-            "url": "https://github.com/coredns/helm/releases/download/coredns-1.42.2/coredns-1.42.2.tgz"
-        },
-        "version": "1.42.2"
-    },
     "longhorn": {
         "cargoLocks": null,
         "date": null,

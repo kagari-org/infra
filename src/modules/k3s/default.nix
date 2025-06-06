@@ -35,11 +35,10 @@ in {
         ] ++ (lib.optionals node.k3s.server [
           "--flannel-backend=none"
           "--disable-network-policy"
-          "--disable=coredns"
           "--disable=local-storage"
           "--disable=metrics-server"
           "--disable=traefik"
-          # enabling: servicelb ccm
+          # enabling: coredns servicelb ccm
         ]);
         manifests = lib.mkIf node.k3s.server {
           manifest.source = self.packages.${pkgs.system}.manifest;

@@ -26,7 +26,8 @@
       '';
     };
     infra.hooks = ''
-      ln -sf ${joined} src/manifest/charts
+      rm src/manifest/charts
+      ln -s ${joined} src/manifest/charts
     '';
   };
 }
