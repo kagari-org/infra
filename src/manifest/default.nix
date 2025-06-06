@@ -16,6 +16,15 @@
       '') charts |> lib.concatStringsSep "\n"}
     '';
   in {
+    packages.manifest = pkgs.stdenv.mkDerivation {
+      name = "manifest.yaml";
+      src = ./.;
+      nativeBuildInputs = with pkgs; [ kustomize kubernetes-helm ];
+      buildPhase = ''
+        ln -s ${joined} charts
+        kustomize build . --enable-helm --load-restrictor LoadRestrictionsNone > $out
+      '';
+    };
     infra.hooks = ''
       ln -sf ${joined} src/manifest/charts
     '';

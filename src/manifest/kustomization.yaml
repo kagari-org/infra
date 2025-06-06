@@ -2,6 +2,20 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 helmCharts:
-- name: calico
-- name: coredns
-- name: longhorn
+  - name: calico
+    namespace: kube-system
+    valuesInline:
+      installation:
+        enabled: true
+        calicoNetwork:
+          nodeAddressAutodetectionV4:
+            firstFound: false
+            kubernetes: NodeInternalIP
+  - name: coredns
+    namespace: kube-system
+    valuesInline:
+      autoscaler:
+        enabled: true
+        nodesPerReplica: 1
+  - name: longhorn
+    namespace: longhorn-system

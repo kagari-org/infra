@@ -1,4 +1,4 @@
-{ config, ... }: let
+{ self, config, ... }: let
   inherit (config) infra;
 in {
   infra.modules = [ {
@@ -42,34 +42,7 @@ in {
           # enabling: servicelb ccm
         ]);
         manifests = lib.mkIf node.k3s.server {
-          # # apply calico
-          # # set ip detection method
-          # calico.source = let
-          #   calico = pkgs.fetchurl {
-          #     url = "https://raw.githubusercontent.com/projectcalico/calico/v3.30.1/manifests/calico.yaml";
-          #     hash = "sha256-b8mamxjzufh495gfOEx7t8hpx5ptoReBoqjVC+954vs=";
-          #   };
-          # in pkgs.runCommand "calico.yaml" {
-          #   nativeBuildInputs = [ pkgs.yq-go ];
-          # } ''
-          #   yq '
-          #     (select(.kind == "DaemonSet")
-          #       | select(.metadata.name == "calico-node")
-          #       | .spec.template.spec.containers[]
-          #       | select(.name == "calico-node").env) += [{
-          #         "name": "IP_AUTODETECTION_METHOD",
-          #         "value": "kubernetes-internal-ip"
-          #       }, {
-          #         "name": "IP6_AUTODETECTION_METHOD",
-          #         "value": "kubernetes-internal-ip"
-          #       }]
-          #   ' ${calico} > $out
-          # '';
-
-          # longhorn.source = pkgs.fetchurl {
-          #   url = "https://raw.githubusercontent.com/longhorn/longhorn/v1.9.0/deploy/longhorn.yaml";
-          #   hash = "sha256-N4hXJfiklJ9zh/DzGxuCForolSN+HQ9R9vHLqOwADUE=";
-          # };
+          manifest.source = self.packages.${pkgs.system}.manifest;
         };
       };
     };
