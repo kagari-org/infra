@@ -49,7 +49,7 @@ in {
     nixosConfigurations = cfg.nodes
       |> lib.mapAttrs (name: node: inputs.nixpkgs.lib.nixosSystem {
         inherit system;
-        modules = node.modules ++ [ ({ pkgs, ... }: {}) ];
+        inherit (node) module;
         specialArgs = {
           inherit name node;
         };

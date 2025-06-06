@@ -12,11 +12,13 @@
     systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
     transposition.lib = {};
     debug = true;
-    perSystem = { pkgs, inputs', ... }: {
+    perSystem = { config, pkgs, inputs', ... }: {
       devShells.default = pkgs.mkShell {
+        shellHook = config.infra.hooks;
         buildInputs = with pkgs; [];
         nativeBuildInputs = with pkgs; [
-          sops age ssh-to-age
+          sops age ssh-to-age nvfetcher
+          kustomize kubernetes-helm
           inputs'.deploy.packages.default
           inputs'.sops-nix.packages.default
         ];
