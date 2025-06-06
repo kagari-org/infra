@@ -1,14 +1,14 @@
 { inputs, modules, ... }: {
-  infra.nodes.a3 = {
-    id = 3;
-    address = "a3.ff.ci";
-    modules = (modules [ "nixos" ]) ++ (modules [ "nixos:a3" ]);
+  infra.nodes.test2 = {
+    id = 2;
+    address = "test2.kagari.org";
+    modules = (modules [ "nixos" ]) ++ (modules [ "nixos:test2" ]);
     cryonet.bootstrap = true;
     k3s.server = true;
   };
 
   infra.modules = [ {
-    tags = [ "nixos:a3" ];
+    tags = [ "nixos:test2" ];
     module = { modulesPath, ... }: {
       imports = [ (modulesPath + "/profiles/qemu-guest.nix") ];
       boot.loader.grub = {

@@ -1,8 +1,8 @@
 { inputs, modules, ... }: {
-  infra.nodes.a1 = {
+  infra.nodes.test1 = {
     id = 1;
-    address = "a1.ff.ci";
-    modules = (modules [ "nixos" ]) ++ (modules [ "nixos:a2" ]);
+    address = "test1.kagari.org";
+    modules = (modules [ "nixos" ]) ++ (modules [ "nixos:test1" ]);
     cryonet.bootstrap = true;
     k3s = {
       server = true;
@@ -11,7 +11,7 @@
   };
 
   infra.modules = [ {
-    tags = [ "nixos:a1" ];
+    tags = [ "nixos:test1" ];
     module = { modulesPath, ... }: {
       imports = [ (modulesPath + "/profiles/qemu-guest.nix") ];
       boot.loader.grub = {
