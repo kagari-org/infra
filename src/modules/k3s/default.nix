@@ -5,8 +5,8 @@ in {
     type = "nixos";
     module = { config, pkgs, lib, name, node, ... }: {
       config = lib.mkIf node.k3s.enable {
+        networking.firewall.allowedTCPPorts = [ 80 443 ];
         networking.firewall.trustedInterfaces = [ "cali*" ];
-        sops.secrets.k3s-token.sopsFile = ./secrets.yaml;
 
         # for longhorn
         systemd.tmpfiles.rules = [ "L+ /usr/local/bin - - - - /run/current-system/sw/bin/" ];
@@ -16,8 +16,7 @@ in {
           name = "${config.networking.hostName}-initiatorhost";
         };
 
-        networking.firewall.allowedTCPPorts = [ 80 443 ];
-
+        sops.secrets.k3s-token.sopsFile = ./secrets.yaml;
         systemd.services.k3s.serviceConfig.TimeoutStartSec = "5m";
         systemd.services.k3s.after = [ "cryonet.service" ];
         services.k3s = let

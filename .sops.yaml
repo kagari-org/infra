@@ -3,6 +3,7 @@ keys:
   - &test1 age1rycphflndwl0hx38rnt7vkssfxsnua7yn8lhujc4jw9c3gxpp99sc5ymph
   - &test2 age1h9dj3zl05mgdw38svvhkgc99w8g2pnpurlc39gh73ffsne6wzfks4fm2en
   - &test3 age1y8nhpq8zmlxcwxpp4wcnl6k5frlcrl0m7w37ya5dyqwzgn8d8ctqtv2pxf
+  - &test4 age12j5m9tnadjdnd8n0wmkhnj5d9hrc53lqsmljn86ru7gg2t75q5eswg36ew
 
 creation_rules:
   - path_regex: src/.+/secrets.yaml$
@@ -12,3 +13,4 @@ creation_rules:
         - *test1
         - *test2
         - *test3
+        - *test4
