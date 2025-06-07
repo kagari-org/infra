@@ -2,7 +2,7 @@
   inherit (config) infra;
 in {
   infra.modules = [ {
-    tags = [ "nixos" "k3s" ];
+    type = "nixos";
     module = { config, pkgs, lib, name, node, ... }: {
       networking.firewall.trustedInterfaces = [ "cali*" ];
       sops.secrets.k3s-token.sopsFile = ./secrets.yaml;

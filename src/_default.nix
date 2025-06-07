@@ -12,10 +12,9 @@
       |> map (x: listFiles /${path}/${x})
       |> lib.flatten;
   in regular ++ directory;
-  isSubset = all: part: lib.all (lib.flip lib.elem all) part;
 in {
   imports = listFiles ./.;
-  _module.args.modules = tags: config.infra.modules
-    |> lib.filter (module: isSubset module.tags tags)
+  _module.args.modules = type: config.infra.modules
+    |> lib.filter (module: module.type == type)
     |> map ({ module, ... }: module);
 }

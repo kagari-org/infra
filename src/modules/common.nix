@@ -1,6 +1,6 @@
 { inputs, ... }: {
   infra.modules = [ {
-    tags = [ "nixos" ];
+    type = "nixos";
     module = { lib, name, ... }: {
       imports = [ inputs.sops-nix.nixosModules.sops ];
       system.stateVersion = "25.05";

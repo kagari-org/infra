@@ -2,14 +2,10 @@
   infra.nodes.test2 = {
     id = 2;
     address = "test2.kagari.org";
-    modules = (modules [ "nixos" ]) ++ (modules [ "nixos:test2" ]);
     cryonet.bootstrap = true;
     k3s.server = true;
-  };
 
-  infra.modules = [ {
-    tags = [ "nixos:test2" ];
-    module = { modulesPath, ... }: {
+    modules = (modules "nixos") ++ [ ({ modulesPath, ... }: {
       imports = [ (modulesPath + "/profiles/qemu-guest.nix") ];
       boot.loader.grub = {
         enable = true;
@@ -23,6 +19,6 @@
         device = "/dev/vda2";
         fsType = "vfat";
       };
-    };
-  } ];
+    }) ];
+  };
 }

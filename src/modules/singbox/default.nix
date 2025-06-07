@@ -1,6 +1,6 @@
 {
   infra.modules = [ {
-    tags = [ "nixos" ];
+    type = "nixos";
     module = { config, pkgs, lib, ... }: let
       singbox-config = pkgs.writeText "config.json" (lib.generators.toJSON {} {
         route.rule_set = [

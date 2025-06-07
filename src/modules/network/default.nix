@@ -2,7 +2,7 @@
   inherit (config) infra;
 in {
   infra.modules = [ {
-    tags = [ "nixos" ];
+    type = "nixos";
     module = withSystem "x86_64-linux" ({ inputs', ... }: { config, pkgs, lib, node, ... }: {
       networking.useNetworkd = true;
       networking.nftables.enable = true;
