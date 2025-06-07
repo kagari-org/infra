@@ -15,6 +15,8 @@ in {
         name = "${config.networking.hostName}-initiatorhost";
       };
 
+      networking.firewall.allowedTCPPorts = [ 80 443 ];
+
       systemd.services.k3s.serviceConfig.TimeoutStartSec = "5m";
       systemd.services.k3s.after = [ "cryonet.service" ];
       services.k3s = let

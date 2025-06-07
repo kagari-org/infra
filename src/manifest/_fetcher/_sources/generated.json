@@ -16,6 +16,23 @@
         },
         "version": "3.30.1"
     },
+    "cert-manager": {
+        "cargoLocks": null,
+        "date": null,
+        "extract": null,
+        "name": "cert-manager",
+        "passthru": {
+            "path": "cert-manager"
+        },
+        "pinned": false,
+        "src": {
+            "name": null,
+            "sha256": "sha256-n46q2nhahwESx7GHSVK36Hdv0GZgg2HIPs7oWTFDk60=",
+            "type": "url",
+            "url": "https://charts.jetstack.io/charts/cert-manager-v1.17.2.tgz"
+        },
+        "version": "1.17.2"
+    },
     "longhorn": {
         "cargoLocks": null,
         "date": null,
@@ -32,5 +49,22 @@
             "url": "https://github.com/longhorn/longhorn/releases/download/v1.9.0/charts.tar.gz"
         },
         "version": "1.9.0"
+    },
+    "traefik": {
+        "cargoLocks": null,
+        "date": null,
+        "extract": null,
+        "name": "traefik",
+        "passthru": {
+            "path": "traefik"
+        },
+        "pinned": false,
+        "src": {
+            "name": null,
+            "sha256": "sha256-hekZQYQW45LuTus+/acgzOxjRnc+308XQRd+nOCHSw8=",
+            "type": "url",
+            "url": "https://traefik.github.io/charts/traefik/traefik-36.0.0.tgz"
+        },
+        "version": "36.0.0"
     }
 }

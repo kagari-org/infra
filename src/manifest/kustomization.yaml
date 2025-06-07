@@ -4,9 +4,11 @@ kind: Kustomization
 resources:
   - ./resources/namespaces.yaml
   - ./resources/coredns.yaml
+  - ./resources/gateway.yaml
 
 helmCharts:
   - name: calico
+    releaseName: calico
     namespace: tigera-operator
     skipHooks: true
     includeCRDs: true
@@ -18,6 +20,22 @@ helmCharts:
             firstFound: false
             kubernetes: NodeInternalIP
   - name: longhorn
+    releaseName: longhorn
     namespace: longhorn-system
     skipHooks: true
     includeCRDs: true
+  - name: traefik
+    releaseName: traefik
+    namespace: gateway
+    skipHooks: true
+    includeCRDs: true
+    valuesInline:
+      deployment:
+        kind: DaemonSet
+  - name: cert-manager
+    releaseName: cert-manager
+    namespace: gateway
+    skipHooks: true
+    includeCRDs: true
+    valuesInline:
+      installCRDs: true

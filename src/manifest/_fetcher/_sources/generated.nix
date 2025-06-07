@@ -10,6 +10,15 @@
     };
     path = "tigera-operator";
   };
+  cert-manager = {
+    pname = "cert-manager";
+    version = "1.17.2";
+    src = fetchurl {
+      url = "https://charts.jetstack.io/charts/cert-manager-v1.17.2.tgz";
+      sha256 = "sha256-n46q2nhahwESx7GHSVK36Hdv0GZgg2HIPs7oWTFDk60=";
+    };
+    path = "cert-manager";
+  };
   longhorn = {
     pname = "longhorn";
     version = "1.9.0";
@@ -18,5 +27,14 @@
       sha256 = "sha256-mqW8zHeBRRyXVrjCqMgIFH8EGCGEggdjN1qIAmVXaPc=";
     };
     path = "charts/longhorn";
+  };
+  traefik = {
+    pname = "traefik";
+    version = "36.0.0";
+    src = fetchurl {
+      url = "https://traefik.github.io/charts/traefik/traefik-36.0.0.tgz";
+      sha256 = "sha256-hekZQYQW45LuTus+/acgzOxjRnc+308XQRd+nOCHSw8=";
+    };
+    path = "traefik";
   };
 }
