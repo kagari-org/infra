@@ -31,6 +31,11 @@ in {
         default = "10.11.0.${toString config.id}";
       };
       options.k3s = {
+        enable = lib.mkOption {
+          type = bool;
+          description = "enable";
+          default = true;
+        };
         server = lib.mkOption {
           type = bool;
           description = "server node";
