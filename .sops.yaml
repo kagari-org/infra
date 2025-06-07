@@ -1,8 +1,8 @@
 keys:
   - &tablet age1p9vcj2y2q59reuswpwjdqj8j3gz5yhz77qm9qeua4f5cc3xe8gqqf698t8
   - &test1 age1rycphflndwl0hx38rnt7vkssfxsnua7yn8lhujc4jw9c3gxpp99sc5ymph
-  - &test2 age1mql7wjernmhtqq69yy7zhaeayvwjcegrvhujzrymmx0x8gd9p5vqhnmp2p
-  - &test3 age1tnl05jvur44jc23nl45fzxldfg2p2l0vlw9v3vp2qmf7fktfeausec6hm0
+  - &test2 age1h9dj3zl05mgdw38svvhkgc99w8g2pnpurlc39gh73ffsne6wzfks4fm2en
+  - &test3 age1y8nhpq8zmlxcwxpp4wcnl6k5frlcrl0m7w37ya5dyqwzgn8d8ctqtv2pxf
 
 creation_rules:
   - path_regex: src/.+/secrets.yaml$
