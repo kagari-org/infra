@@ -1,7 +1,7 @@
 {
   infra.modules = [ {
     type = "nixos";
-    module = { config, pkgs, lib, ... }: let
+    module = { config, pkgs, lib, node, ... }: let
       singbox-config = pkgs.writeText "config.json" (lib.generators.toJSON {} {
         route.rule_set = [
           {
@@ -59,22 +59,24 @@
         };
       });
     in {
-      sops.secrets.singbox-sub.sopsFile = ./secrets.yaml;
-      services.sing-box.enable = true;
-      systemd.services.sing-box = {
-        path = with pkgs; [ jq ];
-        serviceConfig.LoadCredential = "sub:${config.sops.secrets.singbox-sub.path}";
-        preStart = lib.mkForce ''
-          export OUTBOUNDS=$(mktemp)
-          jq -r '[.outbounds[] | select(.type | contains("vmess", "shadowsocks"))]' \
-            $CREDENTIALS_DIRECTORY/sub > $OUTBOUNDS
-          export URLTEST=$(mktemp)
-          jq -r '[[.[].tag] | {tag: "s_auto", type: "urltest", outbounds: .}]' $OUTBOUNDS > $URLTEST
+      config = lib.mkIf node.singbox.enable {
+        sops.secrets.singbox-sub.sopsFile = ./secrets.yaml;
+        services.sing-box.enable = true;
+        systemd.services.sing-box = {
+          path = with pkgs; [ jq ];
+          serviceConfig.LoadCredential = "sub:${config.sops.secrets.singbox-sub.path}";
+          preStart = lib.mkForce ''
+            export OUTBOUNDS=$(mktemp)
+            jq -r '[.outbounds[] | select(.type | contains("vmess", "shadowsocks"))]' \
+              $CREDENTIALS_DIRECTORY/sub > $OUTBOUNDS
+            export URLTEST=$(mktemp)
+            jq -r '[[.[].tag] | {tag: "s_auto", type: "urltest", outbounds: .}]' $OUTBOUNDS > $URLTEST
 
-          cat ${singbox-config} $URLTEST $OUTBOUNDS | jq -s -r '
-            .[0].outbounds += .[1] + .[2] | .[0]
-          ' > /run/sing-box/config.json
-        '';
+            cat ${singbox-config} $URLTEST $OUTBOUNDS | jq -s -r '
+              .[0].outbounds += .[1] + .[2] | .[0]
+            ' > /run/sing-box/config.json
+          '';
+        };
       };
     };
   } ];

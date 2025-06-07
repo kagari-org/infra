@@ -33,7 +33,7 @@ in {
       options.k3s = {
         enable = lib.mkOption {
           type = bool;
-          description = "enable";
+          description = "enable k3s";
           default = true;
         };
         server = lib.mkOption {
@@ -46,6 +46,11 @@ in {
           description = "endpoint node";
           default = false;
         };
+      };
+      options.singbox.enable = lib.mkOption {
+        type = bool;
+        description = "enable singbox";
+        default = false;
       };
     }));
     description = "nixos definition";
