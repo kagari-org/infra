@@ -6,6 +6,7 @@ in {
     module = withSystem "x86_64-linux" ({ inputs', ... }: { config, pkgs, lib, node, ... }: {
       networking.useNetworkd = true;
       networking.nftables.enable = true;
+      networking.nftables.checkRuleset = false;
       networking.firewall.checkReversePath = false;
       networking.firewall.trustedInterfaces = [ "cn*" ];
       networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
@@ -19,7 +20,24 @@ in {
         "net.ipv4.conf.all.rp_filter" = 0;
       };
 
+      # allow udp ports from cryonet
+      networking.nftables.tables.nixos-fw.content = lib.mkBefore ''
+        set cryonet-ports {
+          type inet_service;
+          flags dynamic;
+          timeout 1d;
+        }
+        chain cryonet-output {
+          type route hook output priority filter; policy accept;
+          socket cgroupv2 level 1 "cryonet.slice" add @cryonet-ports { udp sport }
+        }
+      '';
+      networking.firewall.extraInputRules = ''
+        udp dport @cryonet-ports accept
+      '';
+
       sops.secrets.cryonet-env.sopsFile = ./secrets.yaml;
+      systemd.slices.cryonet.wantedBy = [ "nftables.service" ];
       systemd.services.cryonet = {
         wantedBy = [ "multi-user.target" ];
         after = [ "network.target" ];
@@ -35,6 +53,7 @@ in {
           Restart = "always";
           EnvironmentFile = config.sops.secrets.cryonet-env.path;
           ExecStart = "${inputs'.cryonet.packages.default}/bin/cryonet ${toString node.id}";
+          Slice = "cryonet.slice";
         };
       };
 
