@@ -8,8 +8,11 @@ in {
       networking.nftables.enable = true;
       networking.firewall.checkReversePath = false;
       networking.firewall.trustedInterfaces = [ "cn*" ];
-      # don't use 127.0.0.53
-      environment.etc."resolv.conf".source = lib.mkForce "/run/systemd/resolve/resolv.conf";
+      networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
+      networking.resolvconf.extraConfig = ''
+        name_servers="8.8.8.8 8.8.4.4"
+      '';
+      services.resolved.enable = false;
 
       boot.kernel.sysctl = {
         "net.ipv4.ip_forward" = 1;

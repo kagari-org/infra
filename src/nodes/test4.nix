@@ -2,7 +2,6 @@
   infra.nodes.test4 = {
     id = 4;
     address = "test4.kagari.org";
-    k3s.enable = false;
     singbox.enable = true;
 
     modules = (modules "nixos") ++ [ ({ lib, modulesPath, ... }: {

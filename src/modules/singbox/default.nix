@@ -107,16 +107,12 @@
             type route hook output priority filter; policy accept;
             # accept input connections
             ct mark ${toString node.singbox.direct} return
-            # hijack dns
-            ip daddr $RESERVED_IP udp dport != 53 return
-            ip daddr $RESERVED_IP tcp dport != 53 return
+            ip daddr $RESERVED_IP return
             ip protocol { tcp, udp } meta mark set ${toString node.singbox.mark}
           }
           chain singbox-prerouting {
             type filter hook prerouting priority mangle; policy accept;
-            # hijack dns
-            ip daddr $RESERVED_IP udp dport != 53 return
-            ip daddr $RESERVED_IP tcp dport != 53 return
+            ip daddr $RESERVED_IP return
             ip protocol { tcp, udp } meta mark set ${toString node.singbox.mark} tproxy ip to 127.0.0.1:9898
           }
         '';
