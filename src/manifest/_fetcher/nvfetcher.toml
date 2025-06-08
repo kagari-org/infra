@@ -24,3 +24,8 @@ passthru.path = "traefik"
 src.manual = "1.17.2"
 fetch.url = "https://charts.jetstack.io/charts/cert-manager-v$ver.tgz"
 passthru.path = "cert-manager"
+
+[argocd]
+src.manual = "8.0.15"
+fetch.url = "https://github.com/argoproj/argo-helm/releases/download/argo-cd-$ver/argo-cd-$ver.tgz"
+passthru.path = "argo-cd"

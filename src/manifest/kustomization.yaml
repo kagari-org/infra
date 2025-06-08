@@ -5,6 +5,7 @@ resources:
   - ./resources/namespaces.yaml
   - ./resources/coredns.yaml
   - ./resources/gateway.yaml
+  - ./resources/argocd.yaml
 
 patches:
   - patch: |-
@@ -35,7 +36,6 @@ helmCharts:
   - name: coredns
     releaseName: coredns
     namespace: coredns
-    skipHooks: true
     includeCRDs: true
     valuesInline:
       service:
@@ -48,15 +48,36 @@ helmCharts:
   - name: traefik
     releaseName: traefik
     namespace: gateway
-    skipHooks: true
     includeCRDs: true
     valuesInline:
       deployment:
         kind: DaemonSet
+      ports:
+        web:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true
   - name: cert-manager
     releaseName: cert-manager
     namespace: gateway
-    skipHooks: true
     includeCRDs: true
     valuesInline:
       installCRDs: true
+  - name: argocd
+    releaseName: argocd
+    namespace: argocd
+    includeCRDs: true
+    valuesInline:
+      global:
+        domain: cd.kagari.org
+      server:
+        extraArgs:
+          - --insecure
+      configs:
+        cm:
+          kustomize.buildOptions: --enable-helm
+        secret:
+          createSecret: true
+          argocdServerAdminPassword: $2a$10$XJ4JXKYEM.1XjLNUcFqhw.HcsiaK7RhMQxMcQjjnwMyB.de/.tG0.

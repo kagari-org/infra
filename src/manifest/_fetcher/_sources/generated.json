@@ -1,4 +1,21 @@
 {
+    "argocd": {
+        "cargoLocks": null,
+        "date": null,
+        "extract": null,
+        "name": "argocd",
+        "passthru": {
+            "path": "argo-cd"
+        },
+        "pinned": false,
+        "src": {
+            "name": null,
+            "sha256": "sha256-EL1mAJfc80eynuA2qaQ27uPsWEoDkqy12dOelvgAj/o=",
+            "type": "url",
+            "url": "https://github.com/argoproj/argo-helm/releases/download/argo-cd-8.0.15/argo-cd-8.0.15.tgz"
+        },
+        "version": "8.0.15"
+    },
     "calico": {
         "cargoLocks": null,
         "date": null,
