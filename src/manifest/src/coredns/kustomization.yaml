@@ -1,0 +1,21 @@
+apiversion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - ./resource.yaml
+
+generators:
+  - ./helm.yaml
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /kind
+        value: DaemonSet
+      - op: remove
+        path: /spec/replicas
+      - op: remove
+        path: /spec/strategy
+    target:
+      kind: Deployment
+      name: coredns

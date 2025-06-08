@@ -1,0 +1,13 @@
+apiVersion: builtin
+kind: HelmChartInflationGenerator
+metadata:
+  name: coredns
+
+name: coredns
+chartHome: ../../charts
+releaseName: coredns
+namespace: coredns
+includeCRDs: true
+valuesInline:
+  service:
+    clusterIP: 10.43.0.10

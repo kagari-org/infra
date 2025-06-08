@@ -1,0 +1,11 @@
+apiVersion: builtin
+kind: HelmChartInflationGenerator
+metadata:
+  name: longhorn
+
+name: longhorn
+chartHome: ../../charts
+releaseName: longhorn
+namespace: longhorn-system
+skipHooks: true
+includeCRDs: true

@@ -1,0 +1,22 @@
+apiVersion: builtin
+kind: HelmChartInflationGenerator
+metadata:
+  name: argocd
+
+name: argocd
+chartHome: ../../charts
+releaseName: argocd
+namespace: argocd
+includeCRDs: true
+valuesInline:
+  global:
+    domain: cd.kagari.org
+  server:
+    extraArgs:
+      - --insecure
+  configs:
+    cm:
+      kustomize.buildOptions: --enable-helm
+    secret:
+      createSecret: true
+      argocdServerAdminPassword: $2a$10$XJ4JXKYEM.1XjLNUcFqhw.HcsiaK7RhMQxMcQjjnwMyB.de/.tG0.

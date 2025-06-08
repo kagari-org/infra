@@ -1,0 +1,18 @@
+apiVersion: builtin
+kind: HelmChartInflationGenerator
+metadata:
+  name: calico
+
+name: calico
+chartHome: ../../charts
+releaseName: calico
+namespace: tigera-operator
+skipHooks: true
+includeCRDs: true
+valuesInline:
+  installation:
+    enabled: true
+    calicoNetwork:
+      nodeAddressAutodetectionV4:
+        firstFound: false
+        kubernetes: NodeInternalIP
