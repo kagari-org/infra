@@ -38,12 +38,13 @@ in {
             "--flannel-backend=none"
             "--disable-network-policy"
             "--disable=local-storage"
+            "--disable=coredns"
             "--disable=metrics-server"
             "--disable=traefik"
-            # enabling: coredns servicelb ccm
+            # enabling: servicelb ccm
           ]);
           manifests = lib.mkIf node.k3s.server {
-            manifest.source = self.packages.${pkgs.system}.manifest;
+            # manifest.source = self.packages.${pkgs.system}.manifest;
           };
         };
       };

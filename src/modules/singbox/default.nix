@@ -27,8 +27,8 @@
 
         dns = {
           servers = [
-            { tag = "s_google"; address = "tls://8.8.8.8"; }
-            { tag = "s_local"; address = "https://223.5.5.5/dns-query"; detour = "s_direct"; }
+            { tag = "s_google"; address = "udp://8.8.8.8"; }
+            { tag = "s_local"; address = "udp://223.5.5.5"; detour = "s_direct"; }
           ];
           rules = [
             { outbound = "any"; server = "s_local"; }
@@ -41,7 +41,6 @@
                 { rule_set = "s_geoip-cn"; }
               ];
               server = "s_google";
-              client_subnet = "114.114.114.114/32";
             }
           ];
         };
@@ -55,8 +54,8 @@
         outbounds = [
           {
             type = "selector";
-            tag = "s_select";
-            outbounds = [ "s_auto" "s_direct" ];
+            tag = "s_out";
+            outbounds = [ "s_auto" "s_select" "s_direct" ];
             default = "s_auto";
           }
           { type = "direct"; tag = "s_direct"; }
@@ -70,7 +69,7 @@
             { rule_set = "s_geosite-cn"; outbound = "s_direct"; }
             { ip_is_private = true; outbound = "s_direct"; }
           ];
-          final = "s_select";
+          final = "s_out";
           auto_detect_interface = true;
         };
       });
@@ -137,11 +136,13 @@
             export OUTBOUNDS=$(mktemp)
             jq -r '[.outbounds[] | select(.type | contains("vmess", "shadowsocks"))]' \
               $CREDENTIALS_DIRECTORY/sub > $OUTBOUNDS
+            export SELECT=$(mktemp)
+            jq -r '[[.[].tag] | {tag: "s_select", type: "selector", outbounds: .}]' $OUTBOUNDS > $SELECT
             export URLTEST=$(mktemp)
             jq -r '[[.[].tag] | {tag: "s_auto", type: "urltest", outbounds: .}]' $OUTBOUNDS > $URLTEST
 
-            cat ${singbox-config} $URLTEST $OUTBOUNDS | jq -s -r '
-              .[0].outbounds += .[1] + .[2] | .[0]
+            cat ${singbox-config} $SELECT $URLTEST $OUTBOUNDS | jq -s -r '
+              .[0].outbounds += .[1] + .[2] + .[3] | .[0]
             ' > /run/sing-box/config.json
           '';
         };
