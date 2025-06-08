@@ -8,6 +8,8 @@ in {
       networking.nftables.enable = true;
       networking.firewall.checkReversePath = false;
       networking.firewall.trustedInterfaces = [ "cn*" ];
+      # don't use 127.0.0.53
+      environment.etc."resolv.conf".source = lib.mkForce "/run/systemd/resolve/resolv.conf";
 
       boot.kernel.sysctl = {
         "net.ipv4.ip_forward" = 1;
@@ -60,7 +62,7 @@ in {
 
       systemd.network.networks.loopback = {
         matchConfig.Name = "lo";
-        address = [ node.igp-v4 ];
+        address = [ "${node.igp-v4}/32" ];
       };
       services.bird = {
         enable = true;

@@ -14,7 +14,13 @@
             type = "local";
             tag = "s_geosite-cn";
             format = "binary";
-            path = "${pkgs.sing-geosite}/share/sing-box/rule-set/geosite-cn.srs";
+            path = "${pkgs.sing-geosite}/share/sing-box/rule-set/geosite-geolocation-cn.srs";
+          }
+          {
+            type = "local";
+            tag = "s_geosite-!cn";
+            format = "binary";
+            path = "${pkgs.sing-geosite}/share/sing-box/rule-set/geosite-geolocation-cn.srs";
           }
         ];
         experimental.clash_api.external_controller = "0.0.0.0:9090";
@@ -22,12 +28,22 @@
         dns = {
           servers = [
             { tag = "s_google"; address = "tls://8.8.8.8"; }
-            { tag = "s_local"; address = "local"; detour = "s_direct"; }
+            { tag = "s_local"; address = "https://223.5.5.5/dns-query"; detour = "s_direct"; }
           ];
           rules = [
-            { outbound = "s_select"; server = "s_google"; }
+            { outbound = "any"; server = "s_local"; }
+            { rule_set = "s_geosite-cn"; server = "s_local"; }
+            {
+              type = "logical";
+              mode = "and";
+              rules = [
+                { rule_set = "s_geosite-!cn"; invert = true; }
+                { rule_set = "s_geoip-cn"; }
+              ];
+              server = "s_google";
+              client_subnet = "114.114.114.114/32";
+            }
           ];
-          final = "s_local";
         };
 
         inbounds = [ {
@@ -60,6 +76,62 @@
       });
     in {
       config = lib.mkIf node.singbox.enable {
+        networking.firewall.extraInputRules = ''
+          # accept packets redirected from prerouting
+          meta mark ${toString node.singbox.mark} accept
+        '';
+        networking.nftables.tables.nixos-fw.content = lib.mkAfter ''
+          define RESERVED_IP = {
+              0.0.0.0/8,       # RFC 1122 'this' network
+              10.0.0.0/8,      # RFC 1918 private space
+              100.64.0.0/10,   # RFC 6598 Carrier grade nat space
+              127.0.0.0/8,     # RFC 1122 localhost
+              169.254.0.0/16,  # RFC 3927 link local
+              172.16.0.0/12,   # RFC 1918 private space
+              192.0.2.0/24,    # RFC 5737 TEST-NET-1
+              192.88.99.0/24,  # RFC 7526 6to4 anycast relay
+              192.168.0.0/16,  # RFC 1918 private space
+              198.18.0.0/15,   # RFC 2544 benchmarking
+              198.51.100.0/24, # RFC 5737 TEST-NET-2
+              203.0.113.0/24,  # RFC 5737 TEST-NET-3
+              224.0.0.0/4,     # multicast
+              240.0.0.0/4,     # reserved
+          }
+          chain singbox-input {
+            type filter hook input priority mangle; policy accept;
+            # mark new connection from outside
+            # tproxy will redirect output packets to input, so we skip node.singbox.mark packets
+            meta mark != ${toString node.singbox.mark} ct state new ct mark set ${toString node.singbox.direct}
+          }
+          chain singbox-output {
+            type route hook output priority filter; policy accept;
+            # accept input connections
+            ct mark ${toString node.singbox.direct} return
+            # hijack dns
+            ip daddr $RESERVED_IP udp dport != 53 return
+            ip daddr $RESERVED_IP tcp dport != 53 return
+            ip protocol { tcp, udp } meta mark set ${toString node.singbox.mark}
+          }
+          chain singbox-prerouting {
+            type filter hook prerouting priority mangle; policy accept;
+            # hijack dns
+            ip daddr $RESERVED_IP udp dport != 53 return
+            ip daddr $RESERVED_IP tcp dport != 53 return
+            ip protocol { tcp, udp } meta mark set ${toString node.singbox.mark} tproxy ip to 127.0.0.1:9898
+          }
+        '';
+        systemd.network.networks.loopback = {
+          routes = [ {
+            Destination = "0.0.0.0/0";
+            Type = "local";
+            Table = node.singbox.table;
+          } ];
+          routingPolicyRules = [ {
+            FirewallMark = node.singbox.mark;
+            Table = node.singbox.table;
+          } ];
+        };
+
         sops.secrets.singbox-sub.sopsFile = ./secrets.yaml;
         services.sing-box.enable = true;
         systemd.services.sing-box = {

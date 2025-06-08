@@ -47,10 +47,27 @@ in {
           default = false;
         };
       };
-      options.singbox.enable = lib.mkOption {
-        type = bool;
-        description = "enable singbox";
-        default = false;
+      options.singbox = {
+        enable = lib.mkOption {
+          type = bool;
+          description = "enable singbox";
+          default = false;
+        };
+        mark = lib.mkOption {
+          type = number;
+          description = "fwmark";
+          default = 233;
+        };
+        direct = lib.mkOption {
+          type = number;
+          description = "direct mark";
+          default = 234;
+        };
+        table = lib.mkOption {
+          type = number;
+          description = "table";
+          default = 233;
+        };
       };
     }));
     description = "nixos definition";
