@@ -10,6 +10,11 @@ src.manual = "1.42.2"
 fetch.url = "https://github.com/coredns/helm/releases/download/coredns-$ver/coredns-$ver.tgz"
 passthru.path = "coredns"
 
+[metrics-server]
+src.manual = "3.12.2"
+fetch.url = "https://github.com/kubernetes-sigs/metrics-server/releases/download/metrics-server-helm-chart-$ver/metrics-server-$ver.tgz"
+passthru.path = "metrics-server"
+
 [longhorn]
 src.manual = "1.9.0"
 fetch.url = "https://github.com/longhorn/longhorn/releases/download/v$ver/charts.tar.gz"

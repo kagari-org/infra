@@ -46,6 +46,15 @@
     };
     path = "charts/longhorn";
   };
+  metrics-server = {
+    pname = "metrics-server";
+    version = "3.12.2";
+    src = fetchurl {
+      url = "https://github.com/kubernetes-sigs/metrics-server/releases/download/metrics-server-helm-chart-3.12.2/metrics-server-3.12.2.tgz";
+      sha256 = "sha256-6QT/ov4zxCnhLKyKoBO6OPQtlE4xXQYOlCMKU7mJhc8=";
+    };
+    path = "metrics-server";
+  };
   traefik = {
     pname = "traefik";
     version = "36.0.0";

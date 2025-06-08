@@ -4,6 +4,7 @@ kind: Kustomization
 components:
   - ./src/calico
   - ./src/coredns
+  - ./src/metrics-server
   - ./src/longhorn
   - ./src/gateway
   - ./src/argocd

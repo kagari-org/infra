@@ -84,6 +84,23 @@
         },
         "version": "1.9.0"
     },
+    "metrics-server": {
+        "cargoLocks": null,
+        "date": null,
+        "extract": null,
+        "name": "metrics-server",
+        "passthru": {
+            "path": "metrics-server"
+        },
+        "pinned": false,
+        "src": {
+            "name": null,
+            "sha256": "sha256-6QT/ov4zxCnhLKyKoBO6OPQtlE4xXQYOlCMKU7mJhc8=",
+            "type": "url",
+            "url": "https://github.com/kubernetes-sigs/metrics-server/releases/download/metrics-server-helm-chart-3.12.2/metrics-server-3.12.2.tgz"
+        },
+        "version": "3.12.2"
+    },
     "traefik": {
         "cargoLocks": null,
         "date": null,

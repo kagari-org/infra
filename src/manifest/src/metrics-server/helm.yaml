@@ -1,0 +1,10 @@
+apiVersion: builtin
+kind: HelmChartInflationGenerator
+metadata:
+  name: metrics
+
+name: metrics-server
+chartHome: ../../charts
+releaseName: metrics-server
+namespace: metrics
+includeCRDs: true
