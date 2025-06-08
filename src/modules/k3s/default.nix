@@ -44,7 +44,7 @@ in {
             # enabling: servicelb ccm
           ]);
           manifests = lib.mkIf node.k3s.server {
-            # manifest.source = self.packages.${pkgs.system}.manifest;
+            manifest.source = self.packages.${pkgs.system}.manifest;
           };
         };
       };

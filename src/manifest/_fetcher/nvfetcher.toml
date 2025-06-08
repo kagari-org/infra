@@ -5,6 +5,11 @@ src.manual = "3.30.1"
 fetch.url = "https://github.com/projectcalico/calico/releases/download/v$ver/tigera-operator-v$ver.tgz"
 passthru.path = "tigera-operator"
 
+[coredns]
+src.manual = "1.42.2"
+fetch.url = "https://github.com/coredns/helm/releases/download/coredns-$ver/coredns-$ver.tgz"
+passthru.path = "coredns"
+
 [longhorn]
 src.manual = "1.9.0"
 fetch.url = "https://github.com/longhorn/longhorn/releases/download/v$ver/charts.tar.gz"

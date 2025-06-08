@@ -6,6 +6,19 @@ resources:
   - ./resources/coredns.yaml
   - ./resources/gateway.yaml
 
+patches:
+  - patch: |-
+      - op: replace
+        path: /kind
+        value: DaemonSet
+      - op: remove
+        path: /spec/replicas
+      - op: remove
+        path: /spec/strategy
+    target:
+      kind: Deployment
+      name: coredns
+
 helmCharts:
   - name: calico
     releaseName: calico
@@ -19,6 +32,14 @@ helmCharts:
           nodeAddressAutodetectionV4:
             firstFound: false
             kubernetes: NodeInternalIP
+  - name: coredns
+    releaseName: coredns
+    namespace: coredns
+    skipHooks: true
+    includeCRDs: true
+    valuesInline:
+      service:
+        clusterIP: 10.43.0.10
   - name: longhorn
     releaseName: longhorn
     namespace: longhorn-system
