@@ -16,3 +16,7 @@ valuesInline:
       nodeAddressAutodetectionV4:
         firstFound: false
         kubernetes: NodeInternalIP
+  defaultFelixConfiguration:
+    enabled: true
+    ipipEnabled: false
+    vxlanEnabled: false

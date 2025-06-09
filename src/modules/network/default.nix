@@ -36,6 +36,11 @@ in {
         udp dport @cryonet-ports accept
       '';
 
+      systemd.network.networks.cryonet = {
+        matchConfig.Name = "cn*";
+        address = [ "${node.igp-v4}/24" ];
+      };
+
       sops.secrets.cryonet-env.sopsFile = ./secrets.yaml;
       systemd.slices.cryonet.wantedBy = [ "nftables.service" ];
       systemd.services.cryonet = {
