@@ -10,6 +10,8 @@ namespace: external-gateway
 # added in internal-gateway
 # includeCRDs: true
 valuesInline:
+  # the service of external-traefik obtains external ip by service lb
+  # we defined `RequestedServicesOnly` in calico KubeControllersConfiguration
   ingressClass:
     isDefaultClass: false
   deployment:
