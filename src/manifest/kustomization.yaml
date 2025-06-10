@@ -6,5 +6,6 @@ components:
   - ./src/coredns
   - ./src/metrics-server
   - ./src/longhorn
-  - ./src/gateway
+  - ./src/internal-gateway
+  - ./src/external-gateway
   - ./src/argocd

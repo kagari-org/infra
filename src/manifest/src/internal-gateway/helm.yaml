@@ -1,0 +1,16 @@
+apiVersion: builtin
+kind: HelmChartInflationGenerator
+metadata:
+  name: internal-traefik
+
+name: traefik
+chartHome: ../../charts
+releaseName: internal-traefik
+namespace: internal-gateway
+includeCRDs: true
+valuesInline:
+  deployment:
+    kind: DaemonSet
+  service:
+    spec:
+      externalTrafficPolicy: Local

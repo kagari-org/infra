@@ -1,14 +1,17 @@
 apiVersion: builtin
 kind: HelmChartInflationGenerator
 metadata:
-  name: traefik
+  name: external-traefik
 
 name: traefik
 chartHome: ../../charts
-releaseName: traefik
-namespace: gateway
-includeCRDs: true
+releaseName: external-traefik
+namespace: external-gateway
+# added in internal-gateway
+# includeCRDs: true
 valuesInline:
+  ingressClass:
+    isDefaultClass: false
   deployment:
     kind: DaemonSet
   ports:
@@ -22,12 +25,12 @@ valuesInline:
 apiVersion: builtin
 kind: HelmChartInflationGenerator
 metadata:
-  name: cert-manager
+  name: external-cert-manager
 
 name: cert-manager
 chartHome: ../../charts
-releaseName: cert-manager
-namespace: gateway
+releaseName: external-cert-manager
+namespace: external-gateway
 includeCRDs: true
 valuesInline:
   installCRDs: true
