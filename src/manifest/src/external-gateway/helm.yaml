@@ -17,6 +17,9 @@ valuesInline:
   additionalArguments:
     - --providers.kubernetesingress.ingressclass=external-traefik
     - --providers.kubernetescrd.ingressclass=external-traefik
+  service:
+    spec:
+      trafficDistribution: PreferClose
   deployment:
     kind: DaemonSet
   ports:

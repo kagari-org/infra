@@ -2,7 +2,7 @@
   cfg = config.infra;
 in {
   options.infra.nodes = lib.mkOption {
-    type = with lib.types; attrsOf (submodule ({ config, ... }: {
+    type = with lib.types; attrsOf (submodule ({ name, config, ... }: {
       options.id = lib.mkOption {
         type = number;
         description = "id";
@@ -45,6 +45,11 @@ in {
           type = bool;
           description = "endpoint node";
           default = false;
+        };
+        zone = lib.mkOption {
+          type = str;
+          description = "Zone label for node. Node's name by default.";
+          default = name;
         };
       };
       options.singbox = {

@@ -34,6 +34,7 @@ in {
           serverAddr = lib.optionalString (init-node.id != node.id) "https://${init-node.igp-v4}:6443";
           extraFlags = [
             "--node-ip=${node.igp-v4}" "--node-name=${name}"
+            "--node-label=topology.kubernetes.io/zone=${node.k3s.zone}"
           ] ++ (lib.optionals node.k3s.server [
             "--flannel-backend=none"
             "--disable-network-policy"

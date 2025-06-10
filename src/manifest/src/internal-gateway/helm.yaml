@@ -14,6 +14,7 @@ valuesInline:
     - --providers.kubernetescrd.ingressclass=internal-traefik
   service:
     spec:
+      trafficDistribution: PreferClose
       externalTrafficPolicy: Local
       # make servicelb ignore this service, calico will not read this field
       # https://github.com/projectcalico/calico/issues/10544

@@ -10,4 +10,5 @@ namespace: coredns
 includeCRDs: true
 valuesInline:
   service:
+    trafficDistribution: PreferClose
     clusterIP: 10.43.0.10
