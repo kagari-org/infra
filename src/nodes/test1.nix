@@ -22,6 +22,10 @@
         device = "/dev/vda2";
         fsType = "vfat";
       };
+      swapDevices = [ {
+        device = "/swap";
+        size = 8 * 1024;
+      } ];
     }) ];
   };
 }
