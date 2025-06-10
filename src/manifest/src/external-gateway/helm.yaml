@@ -14,6 +14,9 @@ valuesInline:
   # we defined `RequestedServicesOnly` in calico KubeControllersConfiguration
   ingressClass:
     isDefaultClass: false
+  additionalArguments:
+    - --providers.kubernetesingress.ingressclass=external-traefik
+    - --providers.kubernetescrd.ingressclass=external-traefik
   deployment:
     kind: DaemonSet
   ports:

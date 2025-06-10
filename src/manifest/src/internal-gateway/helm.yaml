@@ -9,6 +9,9 @@ releaseName: internal-traefik
 namespace: internal-gateway
 includeCRDs: true
 valuesInline:
+  additionalArguments:
+    - --providers.kubernetesingress.ingressclass=internal-traefik
+    - --providers.kubernetescrd.ingressclass=internal-traefik
   service:
     spec:
       externalTrafficPolicy: Local
