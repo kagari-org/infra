@@ -9,3 +9,10 @@ releaseName: longhorn
 namespace: longhorn-system
 skipHooks: true
 includeCRDs: true
+valuesInline:
+  persistence:
+    defaultDataLocality: strict-local
+    defaultClassReplicaCount: 1
+  defaultSettings:
+    defaultDataLocality: strict-local
+    defaultReplicaCount: 1
