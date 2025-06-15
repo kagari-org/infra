@@ -2,3 +2,20 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: longhorn-system
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: longhorn-ingress
+  namespace: longhorn-system
+  annotations:
+    kubernetes.io/ingress.class: internal-traefik
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: Host(`longhorn.kagari.org`)
+      services:
+        - name: longhorn-frontend
+          port: 80
