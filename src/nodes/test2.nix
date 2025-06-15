@@ -3,7 +3,6 @@
     id = 2;
     address = "test2.kagari.org";
     cryonet.bootstrap = true;
-    k3s.server = true;
 
     modules = (modules "nixos") ++ [ ({ modulesPath, ... }: {
       imports = [ (modulesPath + "/profiles/qemu-guest.nix") ];
