@@ -6,10 +6,31 @@
     k3s = {
       server = true;
       endpoint = true;
-      disks.tmpfs = {
-        path = "/test";
-        tags = [ "tmpfs" ];
+      disks.vdb1 = {
+        path = "/vdb1";
+        tags = [ "vdb1" ];
         storageReserved = 0;
+      };
+      extraManifests.vdb1-storageclass.content = {
+        apiVersion = "storage.k8s.io/v1";
+        kind = "StorageClass";
+        metadata.name = "vdb1-storageclass";
+        provisioner = "driver.longhorn.io";
+        allowVolumeExpansion = true;
+        reclaimPolicy = "Delete";
+        volumeBindingMode = "Immediate";
+        parameters = {
+          numberOfReplicas = "1";
+          staleReplicaTimeout = "30";
+          fromBackup = "";
+          fsType = "ext4";
+          dataLocality = "strict-local";
+          diskSelector = "vdb1";
+          unmapMarkSnapChainRemoved = "ignored";
+          disableRevisionCounter = "true";
+          dataEngine = "v1";
+          backupTargetName = "default";
+        };
       };
     };
 
@@ -27,9 +48,9 @@
         device = "/dev/vda2";
         fsType = "vfat";
       };
-      fileSystems."/test" = {
-        device = "tmpfs";
-        fsType = "tmpfs";
+      fileSystems."/vdb1" = {
+        device = "/dev/vdb1";
+        fsType = "ext4";
       };
       swapDevices = [ {
         device = "/swap";
