@@ -9,6 +9,7 @@ in {
         networking.firewall.trustedInterfaces = [ "cali*" ];
 
         # for longhorn
+        boot.kernelModules = [ "dm_crypt" ];
         systemd.tmpfiles.rules = [ "L+ /usr/local/bin - - - - /run/current-system/sw/bin/" ];
         environment.systemPackages = [ pkgs.nfs-utils ];
         services.openiscsi = {
@@ -16,16 +17,21 @@ in {
           name = "${config.networking.hostName}-initiatorhost";
         };
 
+
         sops.secrets.k3s-token.sopsFile = ./secrets.yaml;
         systemd.services.k3s.serviceConfig.TimeoutStartSec = "5m";
         systemd.services.k3s.after = [ "cryonet.service" ];
         services.k3s = let
           init-node = infra.nodes
-              |> lib.attrValues
-              |> lib.filter (x: x.k3s.endpoint)
-              |> (nodes: assert lib.length nodes == 1; nodes)
-              |> lib.flip lib.elemAt 0
-              |> (node: assert node.k3s.server; node);
+            |> lib.attrValues
+            |> lib.filter (x: x.k3s.endpoint)
+            |> (nodes: assert lib.length nodes == 1; nodes)
+            |> lib.flip lib.elemAt 0
+            |> (node: assert node.k3s.server; node);
+          extraManifests = infra.nodes
+            |> lib.attrValues
+            |> map (x: x.k3s.extraManifests)
+            |> lib.mergeAttrsList;
         in {
           enable = true;
           tokenFile = config.sops.secrets.k3s-token.path;
@@ -44,9 +50,9 @@ in {
             "--disable=traefik"
             # enabling: servicelb ccm
           ]);
-          manifests = lib.mkIf node.k3s.server {
+          manifests = lib.mkIf node.k3s.server ({
             manifest.source = self.packages.${pkgs.system}.manifest;
-          };
+          } // extraManifests);
         };
       };
     };

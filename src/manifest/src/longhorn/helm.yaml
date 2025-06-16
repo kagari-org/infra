@@ -13,6 +13,10 @@ valuesInline:
   persistence:
     defaultDataLocality: strict-local
     defaultClassReplicaCount: 1
+    defaultDiskSelector:
+      enable: true
+      selector: default
   defaultSettings:
+    createDefaultDiskLabeledNodes: true
     defaultDataLocality: strict-local
     defaultReplicaCount: 1

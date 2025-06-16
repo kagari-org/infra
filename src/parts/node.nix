@@ -48,8 +48,46 @@ in {
         };
         zone = lib.mkOption {
           type = str;
-          description = "Zone label for node. Node's name by default.";
+          description = "zone label for node. Node's name by default.";
           default = name;
+        };
+        disks = lib.mkOption {
+          type = attrsOf (submodule ({
+            options.allowScheduling = lib.mkOption {
+              type = bool;
+              description = "scheduling";
+              default = true;
+            };
+            options.evictionRequested = lib.mkOption {
+              type = bool;
+              description = "eviction requested";
+              default = false;
+            };
+            options.path = lib.mkOption {
+              type = str;
+              description = "path";
+            };
+            options.tags = lib.mkOption {
+              type = listOf str;
+              description = "tags";
+              default = [];
+            };
+            options.diskType = lib.mkOption {
+              type = str;
+              description = "disk type";
+              default = "filesystem";
+            };
+            options.storageReserved = lib.mkOption {
+              type = int;
+              description = "storage reserved in bytes";
+              default = 5 * 1024 * 1024 * 1024; # 5 GiB
+            };
+          }));
+          description = "disks";
+        };
+        extraManifests = lib.mkOption {
+          type = attrsOf anything;
+          description = "extra manifests";
         };
       };
       options.singbox = {
@@ -72,6 +110,27 @@ in {
           type = number;
           description = "table";
           default = 233;
+        };
+      };
+      config = {
+        k3s.disks."disk-${name}" = {
+          allowScheduling = true;
+          evictionRequested = false;
+          path = "/var/lib/longhorn";
+          tags = [ "default" "disk-${name}" ];
+        };
+        k3s.extraManifests."disk-${name}".content = {
+          apiVersion = "longhorn.io/v1beta2";
+          kind = "Node";
+          metadata = {
+            name = name;
+            namespace = "longhorn-system";
+          };
+          spec = {
+            allowScheduling = true;
+            evictionRequested = false;
+            disks = config.k3s.disks;
+          };
         };
       };
     }));

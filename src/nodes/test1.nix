@@ -6,6 +6,11 @@
     k3s = {
       server = true;
       endpoint = true;
+      disks.tmpfs = {
+        path = "/test";
+        tags = [ "tmpfs" ];
+        storageReserved = 0;
+      };
     };
 
     modules = (modules "nixos") ++ [ ({ modulesPath, ... }: {
@@ -21,6 +26,10 @@
       fileSystems."/boot" = {
         device = "/dev/vda2";
         fsType = "vfat";
+      };
+      fileSystems."/test" = {
+        device = "tmpfs";
+        fsType = "tmpfs";
       };
       swapDevices = [ {
         device = "/swap";
