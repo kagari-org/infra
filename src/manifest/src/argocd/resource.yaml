@@ -3,6 +3,63 @@ kind: Namespace
 metadata:
   name: argocd
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argocd-age-secret
+  namespace: argocd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: argocd-age-secret
+  namespace: argocd
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "create", "update", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argocd-age-secret
+  namespace: argocd
+subjects:
+  - kind: ServiceAccount
+    name: argocd-age-secret
+roleRef:
+  kind: Role
+  name: argocd-age-secret
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: argocd-age-secret
+  namespace: argocd
+spec:
+  template:
+    spec:
+      serviceAccountName: argocd-age-secret
+      restartPolicy: OnFailure
+      containers:
+        - name: argocd-age-secret
+          image: alpine:3.22.0
+          command:
+            - sh
+            - -c
+            - |
+              echo "Creating age secret for ArgoCD"
+              apk add kubectl age
+              kubectl -n argocd get secret argocd-age-secret
+              if [ $? -eq 0 ]; then
+                echo "Secret already exists, skipping creation"
+                exit 0
+              fi
+              KEY="$(age-keygen)"
+              kubectl -n argocd create secret generic argocd-age-secret \
+                --from-literal=key="$KEY"
+---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:

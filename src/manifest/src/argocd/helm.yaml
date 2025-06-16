@@ -44,3 +44,10 @@ valuesInline:
       - mountPath: /usr/local/bin/ksops
         name: custom-tools
         subPath: ksops
+    env:
+      - name: SOPS_AGE_KEY
+        valueFrom:
+          secretKeyRef:
+            # generates in resource.yaml
+            name: argocd-age-secret
+            key: key
