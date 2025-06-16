@@ -50,6 +50,10 @@ in {
             "--disable=traefik"
             # enabling: servicelb ccm
           ]);
+          extraKubeletConfig = {
+            featureGates.NodeSwap = true;
+            memorySwap.swapBehavior = "LimitedSwap";
+          };
           manifests = lib.mkIf node.k3s.server ({
             manifest.source = self.packages.${pkgs.system}.manifest;
           } // extraManifests);
