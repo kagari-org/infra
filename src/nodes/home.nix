@@ -3,6 +3,34 @@
     id = 3;
     address = "192.168.1.7";
     singbox.enable = true;
+    k3s = {
+      disks.data-home = {
+        path = "/data";
+        tags = [ "data-home" ];
+        storageReserved = 0;
+      };
+      extraManifests.data-home-storageclass.content = {
+        apiVersion = "storage.k8s.io/v1";
+        kind = "StorageClass";
+        metadata.name = "data-home-storageclass";
+        provisioner = "driver.longhorn.io";
+        allowVolumeExpansion = true;
+        reclaimPolicy = "Delete";
+        volumeBindingMode = "Immediate";
+        parameters = {
+          numberOfReplicas = "1";
+          staleReplicaTimeout = "30";
+          fromBackup = "";
+          fsType = "ext4";
+          dataLocality = "strict-local";
+          diskSelector = "data-home";
+          unmapMarkSnapChainRemoved = "ignored";
+          disableRevisionCounter = "true";
+          dataEngine = "v1";
+          backupTargetName = "default";
+        };
+      };
+    };
 
     modules = (modules "nixos") ++ [ ({ modulesPath, ... }: {
       # hardware

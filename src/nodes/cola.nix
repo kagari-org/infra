@@ -11,27 +11,6 @@
         tags = [ "default" "data-cola" ];
         storageReserved = 0;
       };
-      extraManifests.data-cola-storageclass.content = {
-        apiVersion = "storage.k8s.io/v1";
-        kind = "StorageClass";
-        metadata.name = "data-cola-storageclass";
-        provisioner = "driver.longhorn.io";
-        allowVolumeExpansion = true;
-        reclaimPolicy = "Delete";
-        volumeBindingMode = "Immediate";
-        parameters = {
-          numberOfReplicas = "1";
-          staleReplicaTimeout = "30";
-          fromBackup = "";
-          fsType = "ext4";
-          dataLocality = "strict-local";
-          diskSelector = "data-cola";
-          unmapMarkSnapChainRemoved = "ignored";
-          disableRevisionCounter = "true";
-          dataEngine = "v1";
-          backupTargetName = "default";
-        };
-      };
     };
 
     modules = (modules "nixos") ++ [ ({ config, lib, ... }: {
