@@ -1,6 +1,7 @@
 keys:
   - &tablet age1p9vcj2y2q59reuswpwjdqj8j3gz5yhz77qm9qeua4f5cc3xe8gqqf698t8
   - &cola   age1xzeru626ugw2znueqy034nme56fvf29pq2q3zq4609ajdn2hvdjqnm3vtu
+  - &hk     age1lc62eudsfg8whvet22zk6ttqnxnsmzucgpsa809qc9ve7en07css0xmyvt
 
 creation_rules:
   - path_regex: src/.+/secrets.yaml$
@@ -8,3 +9,4 @@ creation_rules:
       - age:
         - *tablet
         - *cola
+        - *hk
