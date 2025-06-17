@@ -52,7 +52,7 @@ in {
             |> lib.filter (x: x.id != node.id && x.cryonet.bootstrap)
             |> lib.map (x: "wss://${x.address}:18443")
             |> lib.concatStringsSep ",";
-          ICE_SERVERS = "stun:stun.l.google.com";
+          ICE_SERVERS = "stun:stun.l.google.com,stun:stun.miwifi.com";
         };
         serviceConfig = {
           Restart = "always";
