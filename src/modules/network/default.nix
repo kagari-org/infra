@@ -14,6 +14,10 @@ in {
         name_servers="8.8.8.8 8.8.4.4"
       '';
       services.resolved.enable = false;
+      # TODO: networking.getaddrinfo in 25.11
+      environment.etc."gai.conf".text = ''
+        precedence ::ffff:0:0/96 100
+      '';
 
       boot.kernel.sysctl = {
         "net.ipv4.ip_forward" = 1;

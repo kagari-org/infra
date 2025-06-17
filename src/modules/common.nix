@@ -9,7 +9,6 @@
       nix = {
         nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
         registry.p.flake = inputs.nixpkgs;
-        # settings.substituters = lib.mkBefore [ "https://mirrors.sjtug.sjtu.edu.cn/nix-channels/store" ];
         extraOptions = ''
           experimental-features = nix-command flakes
         '';

@@ -17,6 +17,7 @@ in {
           name = "${config.networking.hostName}-initiatorhost";
         };
 
+        boot.kernel.sysctl."fs.inotify.max_user_instances" = 1024;
 
         sops.secrets.k3s-token.sopsFile = ./secrets.yaml;
         systemd.services.k3s.serviceConfig.TimeoutStartSec = "5m";
