@@ -5,7 +5,7 @@
       imports = [ inputs.sops-nix.nixosModules.sops ];
       system.stateVersion = "25.05";
       services.openssh.enable = true;
-      networking.hostName = name;
+      networking.hostName = lib.mkDefault name;
       nix = {
         nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
         registry.p.flake = inputs.nixpkgs;
