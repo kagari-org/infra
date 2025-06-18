@@ -11,11 +11,12 @@
       boot.kernelModules = [ "kvm-intel" ];
       boot.loader.grub.device = "/dev/sda";
       fileSystems."/" = {
-        device = "/dev/disk/by-uuid/854d1a98-a604-4e0b-a7c1-aabf104354a1";
+        device = "/dev/disk/by-uuid/40c6cbfd-fec1-48a3-b4fd-d93c237719ec";
         fsType = "ext4";
       };
       swapDevices = [ {
-        device = "/dev/disk/by-uuid/f61df665-c769-4419-a3ce-afb8c7aaa44a";
+        device = "/swap";
+        size = 8 * 1024;
       } ];
       # config
       networking.firewall.allowedTCPPorts = [ 80 443 ];
