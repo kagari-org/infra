@@ -19,7 +19,10 @@
         size = 8 * 1024;
       } ];
       # config
-      networking.firewall.allowedTCPPorts = [ 80 443 ];
+      networking.firewall.allowedTCPPorts = [
+        80 443
+        2022 20000 20001 20002 20003 20004 # pterodactyl
+      ];
     }) ];
   };
 }

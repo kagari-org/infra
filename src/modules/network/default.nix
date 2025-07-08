@@ -54,7 +54,7 @@ in {
           WS_SERVERS = infra.nodes
             |> lib.attrValues
             |> lib.filter (x: x.id != node.id && x.cryonet.bootstrap)
-            |> lib.map (x: "wss://${x.address}:18443")
+            |> lib.map (x: "wss://${x.address}:16809")
             |> lib.concatStringsSep ",";
           ICE_SERVERS = "stun:stun.l.google.com,stun:stun.miwifi.com";
         };
@@ -66,7 +66,7 @@ in {
         };
       };
 
-      networking.firewall.allowedTCPPorts = lib.mkIf node.cryonet.bootstrap [ 18443 ];
+      networking.firewall.allowedTCPPorts = lib.mkIf node.cryonet.bootstrap [ 16809 ];
       sops.secrets.caddy-env = lib.mkIf node.cryonet.bootstrap {
         sopsFile = ./secrets.yaml;
         owner = "caddy";
@@ -81,7 +81,7 @@ in {
         environmentFile = config.sops.secrets.caddy-env.path;
         globalConfig = ''
           http_port 18080
-          https_port 18443
+          https_port 16809
         '';
         virtualHosts.${node.address}.extraConfig = ''
           reverse_proxy 127.0.0.1:2333

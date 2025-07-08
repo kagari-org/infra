@@ -3,6 +3,8 @@
     id = 1;
     address = "cola.s.kagari.org";
     sshOpts = [ "-p" "16801" ];
+    singbox.enable = true;
+    cryonet.bootstrap = true;
     k3s = {
       server = true;
       endpoint = true;
@@ -49,8 +51,40 @@
           enable = true;
           headless = true;
       };
-      networking.firewall.allowedTCPPorts = [ 16801 ];
       services.openssh.ports = [ 16801 22 ];
+
+      networking.firewall.allowedTCPPorts = [
+        16801 16802 16803 16804 16805 16806 16807 16808 16809
+      ];
+      networking.firewall.allowedUDPPorts = [
+        16801 16802 16803 16804 16805 16806 16807 16808 16809
+      ];
+
+
+      sops.secrets.cola-wg = {
+        sopsFile = ./secrets.yaml;
+        owner = "systemd-network";
+        group = "systemd-network";
+      };
+      systemd.network.netdevs.onekvm = {
+        netdevConfig = {
+          Name = "onekvm";
+          Kind = "wireguard";
+        };
+        wireguardConfig = {
+          PrivateKeyFile = config.sops.secrets.cola-wg.path;
+          ListenPort = 16805;
+        };
+        wireguardPeers = [{
+          PublicKey = "1qnmmXdsF4jUEZbT2N4oELx+pq+iUY5BaVQjT0ETeko=";
+          PersistentKeepalive = 25;
+          AllowedIPs = [ "0.0.0.0/0" "::/0" ];
+        }];
+      };
+      systemd.network.networks.onekvm = {
+        matchConfig.Name = "onekvm";
+        networkConfig.Address = "fe80::2/64";
+      };
     }) ];
   };
 }
