@@ -32,8 +32,11 @@ in {
           timeout 1d;
         }
         chain cryonet-output {
-          type route hook output priority filter; policy accept;
+          type route hook output priority mangle; policy accept;
           socket cgroupv2 level 1 "cryonet.slice" add @cryonet-ports { udp sport }
+          ${lib.optionalString node.singbox.enable ''
+            socket cgroupv2 level 1 "cryonet.slice" ct mark set ${toString node.singbox.direct}
+          ''}
         }
       '';
       networking.firewall.extraInputRules = ''

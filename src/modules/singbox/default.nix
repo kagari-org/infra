@@ -99,27 +99,26 @@
           chain singbox-input {
             type filter hook input priority mangle; policy accept;
             # mark new connection from outside
-            # tproxy will redirect output packets to input, so we skip node.singbox.mark packets
+            # tproxy will redirect output packets to input
+            # we need make real input packets goto machine self
             meta mark != ${toString node.singbox.mark} ct state new ct mark set ${toString node.singbox.direct}
           }
           chain singbox-output {
-            type route hook output priority filter; policy accept;
+            # we need a lower priority than filter hook (0)
+            # so that we can bypass packets marked by filter hook
+            type route hook output priority 10; policy accept;
             # accept input connections
             ct mark ${toString node.singbox.direct} return
-            ip daddr $RESERVED_IP return
+            # bypass reserved ips but dns queries
+            ip daddr $RESERVED_IP udp dport != 53 return
+            ip daddr $RESERVED_IP tcp dport != 53 return
+            # lookup node.singbox.table, redirect to local
             ip protocol { tcp, udp } meta mark set ${toString node.singbox.mark}
           }
           chain singbox-prerouting {
             type filter hook prerouting priority mangle; policy accept;
-            ip daddr $RESERVED_IP return
-            # bypass allowed ports
-            ${lib.optionalString (lib.length config.networking.firewall.allowedTCPPorts != 0) ''
-              tcp sport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedTCPPorts)} } return
-            ''}
-            ${lib.optionalString (lib.length config.networking.firewall.allowedUDPPorts != 0) ''
-              udp sport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedUDPPorts)} } return
-            ''}
-            ip protocol { tcp, udp } meta mark set ${toString node.singbox.mark} tproxy ip to 127.0.0.1:9898
+            # we are not router, so there is no need to set tproxy for forward packets
+            ip protocol { tcp, udp } meta mark ${toString node.singbox.mark} tproxy ip to 127.0.0.1:9898
           }
         '';
         systemd.network.networks.loopback = {
