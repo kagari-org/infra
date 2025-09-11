@@ -12,6 +12,7 @@ valuesInline:
   additionalArguments:
     - --providers.kubernetesingress.ingressclass=internal-traefik
     - --providers.kubernetescrd.ingressclass=internal-traefik
+    - --entryPoints.websecure.transport.respondingTimeouts.readTimeout=0
   service:
     spec:
       trafficDistribution: PreferClose
