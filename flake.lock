@@ -6,11 +6,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1754841129,
-        "narHash": "sha256-Pf65VKn7+FQTkUyzxxP1MHlZ5CKfHzno5KOa5nyh+qQ=",
+        "lastModified": 1757607491,
+        "narHash": "sha256-vKSKC3VZ5STOTPo5cWBa37g9GPH3VMIl2DQASiLXg0g=",
         "owner": "kagari-org",
         "repo": "cryonet",
-        "rev": "b3848c15feb5c7aed7c0c2fed1ac3d4db70bffa8",
+        "rev": "2ad90192dcd8405632137f139ab708e1056e1674",
         "type": "github"
       },
       "original": {
