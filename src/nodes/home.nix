@@ -1,8 +1,8 @@
 { inputs, modules, ... }: {
   infra.nodes.home = {
     id = 3;
-    address = "10.11.0.3";
-    sshOpts = [ "-J" "cola.s.kagari.org:16801" ];
+    address = "127.0.0.1";
+    sshOpts = [ "-p" "2334" ];
     singbox.enable = true;
     k3s = {
       disks.data-home = {
