@@ -3,6 +3,7 @@
     id = 1;
     address = "cola.s.kagari.org";
     sshOpts = [ "-p" "16801" ];
+    dns = [ "223.5.5.5" "114.114.114.114" ];
     singbox.enable = true;
     cryonet.bootstrap = true;
     k3s = {

@@ -20,6 +20,10 @@ in {
         type = listOf raw;
         description = "modules";
       };
+      options.dns = lib.mkOption {
+        type = listOf str;
+        description = "dns servers";
+      };
       options.cryonet.bootstrap = lib.mkOption {
         type = bool;
         description = "cryonet bootstrap";

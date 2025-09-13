@@ -3,6 +3,7 @@
     id = 3;
     address = "127.0.0.1";
     sshOpts = [ "-p" "2334" ];
+    dns = [ "223.5.5.5" "114.114.114.114" ];
     singbox.enable = true;
     k3s = {
       disks.data-home = {

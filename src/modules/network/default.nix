@@ -5,15 +5,17 @@ in {
     type = "nixos";
     module = withSystem "x86_64-linux" ({ inputs', ... }: { config, pkgs, lib, node, ... }: {
       networking.useNetworkd = true;
+      networking.resolvconf.enable = false;
+      services.resolved.enable = false;
+      environment.etc."resolv.conf".text = node.dns
+        |> lib.map (d: "nameserver ${d}")
+        |> lib.concatStringsSep "\n";
+
       networking.nftables.enable = true;
       networking.nftables.checkRuleset = false;
       networking.firewall.checkReversePath = false;
       networking.firewall.trustedInterfaces = [ "cn*" ];
-      networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
-      networking.resolvconf.extraConfig = ''
-        name_servers="8.8.8.8 8.8.4.4"
-      '';
-      services.resolved.enable = false;
+
       # TODO: networking.getaddrinfo in 25.11
       environment.etc."gai.conf".text = ''
         precedence ::ffff:0:0/96 100
