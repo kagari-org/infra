@@ -86,6 +86,26 @@
         matchConfig.Name = "onekvm";
         networkConfig.Address = "fe80::2/64";
       };
+
+      systemd.network.netdevs.home = {
+        netdevConfig = {
+          Name = "home";
+          Kind = "wireguard";
+        };
+        wireguardConfig = {
+          PrivateKeyFile = config.sops.secrets.cola-wg.path;
+          ListenPort = 16804;
+        };
+        wireguardPeers = [{
+          PublicKey = "DDVb8SfxhNUW+Ja1p8pT5OiGnxpMmvqh86A636+4Aic=";
+          PersistentKeepalive = 25;
+          AllowedIPs = [ "0.0.0.0/0" "::/0" ];
+        }];
+      };
+      systemd.network.networks.home = {
+        matchConfig.Name = "home";
+        networkConfig.Address = "fe80::2/64";
+      };
     }) ];
   };
 }
