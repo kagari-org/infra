@@ -20,7 +20,7 @@ valuesInline:
       # make servicelb ignore this service, calico will not read this field
       # https://github.com/projectcalico/calico/issues/10544
       # https://github.com/kubernetes/cloud-provider/blob/2266dcc5607ab8701b7c7ab654c57b86a188a5df/controllers/service/controller.go#L864
-      loadBalancerClass: "calico"
+      loadBalancerClass: calico
     annotations:
       projectcalico.org/loadBalancerIPs: '["10.11.1.1"]'
   deployment:

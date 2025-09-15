@@ -3,7 +3,6 @@
     id = 2;
     address = "hk.s.kagari.org";
     dns = [ "8.8.8.8" "8.8.4.4" ];
-    cryonet.bootstrap = true;
 
     modules = (modules "nixos") ++ [ ({ modulesPath, config, ... }: {
       # hardware
