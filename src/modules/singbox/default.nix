@@ -118,12 +118,14 @@
           chain singbox-prerouting {
             type filter hook prerouting priority mangle; policy accept;
             ip daddr $RESERVED_IP return
-            # bypass allowed ports
+            # bypass allowed ports for forwarding packets
             ${lib.optionalString (lib.length config.networking.firewall.allowedTCPPorts != 0) ''
-              tcp sport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedTCPPorts)} } return
+              iifname "cali*" tcp sport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedTCPPorts)} } return
+              oifname "cali*" tcp dport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedTCPPorts)} } return
             ''}
             ${lib.optionalString (lib.length config.networking.firewall.allowedUDPPorts != 0) ''
-              udp sport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedUDPPorts)} } return
+              iifname "cali*" udp sport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedUDPPorts)} } return
+              oifname "cali*" udp dport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedUDPPorts)} } return
             ''}
             ip protocol { tcp, udp } meta mark set ${toString node.singbox.mark} tproxy ip to 127.0.0.1:9898
           }
