@@ -61,6 +61,7 @@ in {
             |> lib.filter (x: x.id != node.id && x.cryonet.bootstrap)
             |> lib.map (x: "wss://${x.address}:16809")
             |> lib.concatStringsSep ",";
+          FILTERED_PREFIXES = "10.11.0.0/16";
         };
         serviceConfig = {
           Restart = "always";
