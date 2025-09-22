@@ -45,6 +45,7 @@ in {
           ] ++ (lib.optionals node.k3s.server [
             "--flannel-backend=none"
             "--disable-network-policy"
+            "--disable-helm-controller"
             "--disable=local-storage"
             "--disable=coredns"
             "--disable=metrics-server"
