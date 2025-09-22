@@ -19,3 +19,18 @@ spec:
       services:
         - name: longhorn-frontend
           port: 80
+---
+apiVersion: projectcalico.org/v3
+kind: NetworkPolicy
+metadata:
+  name: longhorn-policy
+  namespace: longhorn-system
+spec:
+  selector: all()
+  types:
+    - Ingress
+  ingress:
+    - action: Allow
+      protocol: TCP
+      source:
+        namespaceSelector: kubernetes.io/metadata.name in {'longhorn-system', 'internal-gateway'}
