@@ -37,11 +37,9 @@ metadata:
   name: longhorn-policy
   namespace: longhorn-system
 spec:
-  selector: all()
   types:
     - Ingress
   ingress:
     - action: Allow
-      protocol: TCP
       source:
         namespaceSelector: kubernetes.io/metadata.name in {'longhorn-system', 'internal-gateway'}
