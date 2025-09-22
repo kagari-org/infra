@@ -17,9 +17,6 @@ valuesInline:
   configs:
     cm:
       kustomize.buildOptions: --enable-helm --enable-alpha-plugins --enable-exec
-    secret:
-      createSecret: true
-      argocdServerAdminPassword: $2a$10$XJ4JXKYEM.1XjLNUcFqhw.HcsiaK7RhMQxMcQjjnwMyB.de/.tG0.
   repoServer:
     # https://github.com/viaduct-ai/kustomize-sops?tab=readme-ov-file#argo-cd-helm-chart-with-custom-tooling
     volumes:
@@ -48,6 +45,5 @@ valuesInline:
       - name: SOPS_AGE_KEY
         valueFrom:
           secretKeyRef:
-            # generates in resource.yaml
             name: argocd-age-secret
             key: key
