@@ -15,7 +15,19 @@ spec:
 apiVersion: projectcalico.org/v3
 kind: IPPool
 metadata:
-  name: calico-ippool
+  name: calico-workload-ippool
+spec:
+  # make the same with --cluster-cidr of k3s
+  cidr: 10.42.0.0/16
+  blockSize: 26
+  assignmentMode: Automatic
+  allowedUses:
+    - Workload
+---
+apiVersion: projectcalico.org/v3
+kind: IPPool
+metadata:
+  name: calico-loadbalacer-ippool
 spec:
   cidr: 10.11.1.0/24
   blockSize: 27

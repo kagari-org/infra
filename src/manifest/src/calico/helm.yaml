@@ -13,6 +13,8 @@ valuesInline:
   installation:
     enabled: true
     calicoNetwork:
+      # dont set default ip ipools
+      ipPools: []
       nodeAddressAutodetectionV4:
         firstFound: false
         kubernetes: NodeInternalIP
