@@ -4,6 +4,15 @@ metadata:
   name: longhorn-system
 ---
 apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: longhorn-basic-auth
+  namespace: longhorn-system
+spec:
+  basicAuth:
+    secret: longhorn-basic-auth-secret
+---
+apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: longhorn-ingress
@@ -16,6 +25,8 @@ spec:
   routes:
     - kind: Rule
       match: Host(`longhorn.kagari.org`)
+      middlewares:
+        - name: longhorn-basic-auth
       services:
         - name: longhorn-frontend
           port: 80
