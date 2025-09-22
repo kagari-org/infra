@@ -20,6 +20,7 @@ spec:
   # make the same with --cluster-cidr of k3s
   cidr: 10.42.0.0/16
   blockSize: 26
+  natOutgoing: true
   assignmentMode: Automatic
   allowedUses:
     - Workload

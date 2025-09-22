@@ -97,16 +97,14 @@
               240.0.0.0/4,     # reserved
           }
           chain singbox-input {
-            type filter hook input priority mangle; policy accept;
+            type filter hook input priority mangle + 100; policy accept;
             # mark new connection from outside
             # tproxy will redirect output packets to input
             # we need make real input packets goto machine self
             meta mark != ${toString node.singbox.mark} ct state new ct mark set ${toString node.singbox.direct}
           }
           chain singbox-output {
-            # we need a lower priority than filter hook (0)
-            # so that we can bypass packets marked by filter hook
-            type route hook output priority 10; policy accept;
+            type route hook output priority filter + 100; policy accept;
             # accept input connections
             ct mark ${toString node.singbox.direct} return
             # bypass reserved ips but dns queries
@@ -116,7 +114,7 @@
             ip protocol { tcp, udp } meta mark set ${toString node.singbox.mark}
           }
           chain singbox-prerouting {
-            type filter hook prerouting priority mangle; policy accept;
+            type filter hook prerouting priority mangle + 100; policy accept;
             ip daddr $RESERVED_IP return
             # bypass allowed ports for forwarding packets
             ${lib.optionalString (lib.length config.networking.firewall.allowedTCPPorts != 0) ''
