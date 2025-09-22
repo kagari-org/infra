@@ -27,3 +27,35 @@ spec:
         - name: argocd-server
           port: 80
           scheme: h2c
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: argocd-hook-cert
+  namespace: argocd
+spec:
+  secretName: argocd-hook-cert
+  issuerRef:
+    name: le-issuer
+    kind: ClusterIssuer
+  dnsNames:
+    - cd-hook.kagari.org
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: argocd-ingress-external
+  namespace: argocd
+  annotations:
+    kubernetes.io/ingress.class: external-traefik
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`cd-hook.kagari.org`) && Path(`/api/webhook`)
+      services:
+        - name: argocd-server
+          port: 80
+  tls:
+    secretName: argocd-hook-cert
