@@ -37,9 +37,10 @@ metadata:
   name: longhorn-policy
   namespace: longhorn-system
 spec:
+  podSelector: app == 'longhorn-ui'
   types:
     - Ingress
   ingress:
     - action: Allow
       source:
-        namespaceSelector: kubernetes.io/metadata.name in {'longhorn-system', 'internal-gateway'}
+        namespaceSelector: kubernetes.io/metadata.name == 'internal-gateway'

@@ -18,5 +18,5 @@ valuesInline:
       selector: default
   defaultSettings:
     createDefaultDiskLabeledNodes: true
-    defaultDataLocality: strict-local
-    defaultReplicaCount: 1
+  networkPolicies:
+    enabled: true
