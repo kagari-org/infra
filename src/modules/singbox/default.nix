@@ -33,6 +33,7 @@
           rules = [
             { outbound = "any"; server = "s_local"; }
             { rule_set = "s_geosite-cn"; server = "s_local"; }
+            { domain_suffix = "kagari.org"; server = "s_direct"; }
             {
               type = "logical";
               mode = "and";

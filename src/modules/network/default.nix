@@ -66,7 +66,7 @@ in {
         serviceConfig = {
           Restart = "always";
           EnvironmentFile = config.sops.secrets.cryonet-env.path;
-          ExecStart = "${inputs'.cryonet.packages.default}/bin/cryonet ${toString node.id}";
+          ExecStart = "${inputs'.cryonet.packages.default}/bin/cryonet --verbose ${toString node.id}";
           Slice = "cryonet.slice";
         };
       };
