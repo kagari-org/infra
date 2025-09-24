@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: longhorn-annotator
+  namespace: longhorn-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: longhorn-annotator
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: longhorn-annotator
+subjects:
+  - kind: ServiceAccount
+    name: longhorn-annotator
+    namespace: longhorn-system
+roleRef:
+  kind: ClusterRole
+  name: longhorn-annotator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: longhorn-annotator
+  namespace: longhorn-system
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: longhorn-annotator
+          restartPolicy: OnFailure
+          containers:
+            - name: longhorn-annotator
+              image: nixery.dev/shell/kubectl/curl/zx:latest
+              command:
+                - zx
+                - -e
+                - |
+                  const nodes = JSON.parse(await $`kubectl get nodes -o json`).items
+                  for (const node of nodes) {
+                    const ip = node.status.addresses.find(a => a.type === 'InternalIP')
+                    if (!ip) continue
+                    const disks = await $`curl http://${ip.address}:18081/disks.json`
+                    await $`kubectl annotate --overwrite node ${node.metadata.name} node.longhorn.io/default-disks-config=${disks}`
+                  }

@@ -19,6 +19,22 @@ in {
 
         boot.kernel.sysctl."fs.inotify.max_user_instances" = 1024;
 
+        systemd.services.k3s-disk-file = let
+          disks = pkgs.writeTextDir "disks.json" (lib.generators.toJSON {} node.k3s.disks);
+          conf = pkgs.writeText "lighttpd.conf" ''
+            server.port = 18081
+            server.document-root = "${disks}" 
+          '';
+        in {
+          wantedBy = [ "multi-user.target" ];
+          after = [ "network.target" ];
+          serviceConfig = {
+            ExecStart = "${pkgs.lighttpd}/bin/lighttpd -D -f ${conf}";
+            ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR1 $MAINPID";
+            KillSignal = "SIGINT";
+          };
+        };
+
         sops.secrets.k3s-token.sopsFile = ./secrets.yaml;
         systemd.services.k3s.serviceConfig.TimeoutStartSec = "5m";
         systemd.services.k3s.after = [ "cryonet.service" ];

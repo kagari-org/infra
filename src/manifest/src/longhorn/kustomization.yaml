@@ -3,6 +3,7 @@ kind: Component
 
 resources:
   - ./resources.yaml
+  - ./annotator.yaml
 
 generators:
   - ./helm.yaml
