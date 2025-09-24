@@ -56,7 +56,11 @@ in {
           default = name;
         };
         disks = lib.mkOption {
-          type = attrsOf (submodule ({
+          type = listOf (submodule ({
+            options.name = lib.mkOption {
+              type = str;
+              description = "name";
+            };
             options.allowScheduling = lib.mkOption {
               type = bool;
               description = "scheduling";
@@ -92,6 +96,7 @@ in {
         extraManifests = lib.mkOption {
           type = attrsOf anything;
           description = "extra manifests";
+          default = {};
         };
       };
       options.singbox = {
@@ -116,27 +121,13 @@ in {
           default = 233;
         };
       };
-      config = {
-        k3s.disks."disk-${name}" = {
-          allowScheduling = true;
-          evictionRequested = false;
-          path = "/var/lib/longhorn";
-          tags = [ "default" "disk-${name}" ];
-        };
-        k3s.extraManifests."disk-${name}".content = {
-          apiVersion = "longhorn.io/v1beta2";
-          kind = "Node";
-          metadata = {
-            name = name;
-            namespace = "longhorn-system";
-          };
-          spec = {
-            allowScheduling = true;
-            evictionRequested = false;
-            disks = config.k3s.disks;
-          };
-        };
-      };
+      config.k3s.disks = [ {
+        name = "disk-${name}";
+        allowScheduling = true;
+        evictionRequested = false;
+        path = "/var/lib/longhorn";
+        tags = [ "default" "disk-${name}" ];
+      } ];
     }));
     description = "nixos definition";
   };

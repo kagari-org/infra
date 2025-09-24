@@ -55,19 +55,20 @@ in {
           role = if node.k3s.server then "server" else "agent";
           clusterInit = init-node.id == node.id;
           serverAddr = lib.optionalString (init-node.id != node.id) "https://${init-node.igp-v4}:6443";
-          extraFlags = [
-            "--node-ip=${node.igp-v4}" "--node-name=${name}"
-            "--node-label=topology.kubernetes.io/zone=${node.k3s.zone}"
-          ] ++ (lib.optionals node.k3s.server [
-            "--flannel-backend=none"
-            "--disable-network-policy"
-            "--disable-helm-controller"
-            "--disable=local-storage"
-            "--disable=coredns"
-            "--disable=metrics-server"
-            "--disable=traefik"
+          configPath = pkgs.writeText "k3s-config.yaml" (lib.generators.toYAML {} ({
+            node-ip = node.igp-v4;
+            node-name = name;
+            node-label = [
+              "topology.kubernetes.io/zone=${node.k3s.zone}"
+              "node.longhorn.io/create-default-disk=config"
+            ];
+          } // lib.optionalAttrs node.k3s.server {
+            flannel-backend = "none";
+            disable-network-policy = true;
+            disable-helm-controller = true;
+            disable = [ "local-storage" "coredns" "metrics-server" "traefik" ];
             # enabling: servicelb ccm
-          ]);
+          }));
           extraKubeletConfig = {
             featureGates.NodeSwap = true;
             memorySwap.swapBehavior = "LimitedSwap";

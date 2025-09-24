@@ -6,11 +6,12 @@
     dns = [ "223.5.5.5" "114.114.114.114" ];
     singbox.enable = true;
     k3s = {
-      disks.data-home = {
+      disks = [ {
+        name = "data-home";
         path = "/data";
         tags = [ "data-home" ];
         storageReserved = 0;
-      };
+      } ];
       extraManifests.data-home-storageclass.content = {
         apiVersion = "storage.k8s.io/v1";
         kind = "StorageClass";

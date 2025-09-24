@@ -9,11 +9,12 @@
     k3s = {
       server = true;
       endpoint = true;
-      disks.data-cola = {
+      disks = [ {
+        name = "data-cola";
         path = "/data";
         tags = [ "default" "data-cola" ];
         storageReserved = 0;
-      };
+      } ];
     };
 
     modules = (modules "nixos") ++ [ ({ config, lib, ... }: {
