@@ -3,7 +3,7 @@
 in {
   infra.modules = [ {
     type = "nixos";
-    module = withSystem "x86_64-linux" ({ inputs', ... }: { config, pkgs, lib, node, ... }: {
+    module = withSystem "x86_64-linux" ({ inputs', self', ... }: { config, pkgs, lib, node, ... }: {
       networking.useNetworkd = true;
       networking.resolvconf.enable = false;
       services.resolved.enable = false;
@@ -100,27 +100,41 @@ in {
         matchConfig.Name = "lo";
         address = [ "${node.igp-v4}/32" ];
       };
+
+      systemd.services.bird-costs = {
+        path = [ config.services.bird.package ];
+        serviceConfig.Type = "oneshot";
+        script = ''
+          ${lib.getExe self'.packages.costs} "cn" > /run/bird/costs.conf
+          birdc configure
+        '';
+      };
+      systemd.timers.bird-costs = {
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = "*:0/15"; # every 15 minutes
+          Persistent = true;
+        };
+      };
+      systemd.services.bird = {
+        serviceConfig.MemoryDenyWriteExecute = lib.mkForce "no";
+        preStart = ''
+          ${lib.getExe self'.packages.costs} "cn" --skip-test > /run/bird/costs.conf
+        '';
+      };
       services.bird = {
         enable = true;
         package = pkgs.bird3.overrideAttrs (old: {
           patches = old.patches ++ [ ./proto.patch ];
         });
+        checkConfig = false;
         config = ''
           router id ${node.igp-v4};
           ipv4 table igp_v4;
-          ipv6 table igp_v6;
           protocol device {}
-          protocol direct { ipv4; ipv6; }
           protocol kernel {
               learn;
               ipv4 {
-                  import all;
-                  export all;
-              };
-          }
-          protocol kernel {
-              learn;
-              ipv6 {
                   import all;
                   export all;
               };
@@ -131,16 +145,10 @@ in {
               import none;
               export all;
           }
-          protocol pipe {
-              table igp_v6;
-              peer table master6;
-              import none;
-              export all;
-          }
 
-          protocol babel {
-            interface "cn*" {
-              type tunnel;
+          protocol ospf v3 {
+            area 0 {
+              include "/run/bird/costs.conf";
             };
             ipv4 {
               table igp_v4;
@@ -148,12 +156,7 @@ in {
                 krt_prefsrc = ${node.igp-v4};
                 accept;
               };
-              export where (source = RTS_STATIC) || (source = RTS_BABEL);
-            };
-            ipv6 {
-              table igp_v6;
-              import all;
-              export where (source = RTS_STATIC) || (source = RTS_BABEL);
+              export where source = RTS_STATIC;
             };
           }
 
