@@ -105,7 +105,7 @@ in {
         path = [ config.services.bird.package ];
         serviceConfig.Type = "oneshot";
         script = ''
-          ${lib.getExe self'.packages.costs} "cn" > /run/bird/costs.conf
+          ${lib.getExe self'.packages.costs} "cn" --bfd > /run/bird/costs.conf
           birdc configure
         '';
       };
@@ -119,7 +119,7 @@ in {
       systemd.services.bird = {
         serviceConfig.MemoryDenyWriteExecute = lib.mkForce "no";
         preStart = ''
-          ${lib.getExe self'.packages.costs} "cn" --skip-test > /run/bird/costs.conf
+          ${lib.getExe self'.packages.costs} "cn" --skip-test --bfd > /run/bird/costs.conf
         '';
       };
       services.bird = {
@@ -146,6 +146,7 @@ in {
               export all;
           }
 
+          protocol bfd {}
           protocol ospf v3 {
             area 0 {
               include "/run/bird/costs.conf";
