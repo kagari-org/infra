@@ -11,8 +11,7 @@ skipHooks: true
 includeCRDs: true
 valuesInline:
   persistence:
-    defaultDataLocality: strict-local
-    defaultClassReplicaCount: 1
+    defaultDataLocality: best-effort
     defaultDiskSelector:
       enable: true
       selector: default
