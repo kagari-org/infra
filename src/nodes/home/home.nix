@@ -1,8 +1,7 @@
 { inputs, modules, ... }: {
   infra.nodes.home = {
     id = 3;
-    address = "127.0.0.1";
-    sshOpts = [ "-p" "2333" ];
+    address = "10.11.0.3";
     dns = [ "223.5.5.5" "114.114.114.114" ];
     singbox.enable = true;
     k3s = {
