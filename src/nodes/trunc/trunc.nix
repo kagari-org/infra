@@ -5,7 +5,7 @@
     dns = [ "223.5.5.5" "114.114.114.114" ];
     singbox.enable = true;
 
-    modules = (modules "nixos") ++ [ ({ config, lib, node, ... }: {
+    modules = (modules "nixos") ++ [ ({ config, pkgs, lib, node, ... }: {
       # hardware
       boot.initrd.availableKernelModules = [ "ahci" "xhci_pci" "ehci_pci" "usbhid" "usb_storage" "sd_mod" ];
       boot.kernelModules = [ "kvm-intel" ];
@@ -70,6 +70,14 @@
               interface = "enp3s0";
               server = [ "223.5.5.5" ];
               dhcp-range = "192.168.1.2,192.168.1.254,24h";
+
+              enable-tftp = true;
+              tftp-root = "${pkgs.ipxe}";
+              dhcp-userclass = "set:ipxe,iPXE";
+              dhcp-boot = [
+                "tag:!ipxe,ipxe.efi"
+                "tag:ipxe,https://boot.netboot.xyz"
+              ];
             };
           };
         };
