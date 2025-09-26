@@ -105,7 +105,10 @@ in {
 
       systemd.services.bird-costs = {
         path = [ config.services.bird.package ];
-        serviceConfig.Type = "oneshot";
+        serviceConfig = {
+          Type = "oneshot";
+          Restart = "on-failure";
+        };
         script = ''
           ${lib.getExe self'.packages.costs} "cn" --bfd > /run/bird/costs.conf
           birdc configure
