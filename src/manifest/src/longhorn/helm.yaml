@@ -10,7 +10,10 @@ namespace: longhorn-system
 skipHooks: true
 includeCRDs: true
 valuesInline:
+  longhornUI:
+    replicas: 1
   persistence:
+    reclaimPolicy: Retain
     defaultDataLocality: strict-local
     defaultClassReplicaCount: 1
     defaultDiskSelector:

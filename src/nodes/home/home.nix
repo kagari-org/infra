@@ -17,7 +17,7 @@
         metadata.name = "data-home-storageclass";
         provisioner = "driver.longhorn.io";
         allowVolumeExpansion = true;
-        reclaimPolicy = "Delete";
+        reclaimPolicy = "Retain";
         volumeBindingMode = "Immediate";
         parameters = {
           numberOfReplicas = "1";
