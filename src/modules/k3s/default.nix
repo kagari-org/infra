@@ -17,7 +17,12 @@ in {
           name = "${config.networking.hostName}-initiatorhost";
         };
 
-        boot.kernel.sysctl."fs.inotify.max_user_instances" = 1024;
+        boot.kernel.sysctl = {
+          "fs.inotify.max_user_instances" = 1024;
+          # https://github.com/kubernetes/kubernetes/issues/94861
+          # https://github.com/kubernetes/kubernetes/pull/120412
+          "net.netfilter.nf_conntrack_tcp_be_liberal" = 1;
+        };
 
         systemd.services.k3s-disk-file = let
           disks = pkgs.writeTextDir "disks.json" (lib.generators.toJSON {} node.k3s.disks);
