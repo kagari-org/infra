@@ -69,6 +69,9 @@
             { rule_set = "s_geoip-cn"; outbound = "s_direct"; }
             { rule_set = "s_geosite-cn"; outbound = "s_direct"; }
             { ip_is_private = true; outbound = "s_direct"; }
+
+            { domain = "la13-idrive.kagari.org"; outbound = "s_direct"; }
+            { domain = "sg01-idrive.kagari.org"; outbound = "s_direct"; }
           ];
           final = "s_out";
           auto_detect_interface = true;
