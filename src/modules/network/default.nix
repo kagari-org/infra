@@ -121,12 +121,7 @@ in {
           Persistent = true;
         };
       };
-      systemd.services.bird = {
-        serviceConfig.MemoryDenyWriteExecute = lib.mkForce "no";
-        preStart = ''
-          ${lib.getExe self'.packages.costs} "cn" --skip-test --bfd > /run/bird/costs.conf
-        '';
-      };
+      systemd.services.bird.preStart = "touch /run/bird/costs.conf";
       services.bird = {
         enable = true;
         package = pkgs.bird3.overrideAttrs (old: {
@@ -155,6 +150,11 @@ in {
           protocol ospf v3 {
             area 0 {
               include "/run/bird/costs.conf";
+              # fallback
+              interface "cn*" {
+                bfd;
+                cost 65535;
+              };
             };
             ipv4 {
               table igp_v4;
