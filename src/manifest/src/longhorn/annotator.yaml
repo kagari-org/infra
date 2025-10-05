@@ -50,6 +50,10 @@ spec:
                   for (const node of nodes) {
                     const ip = node.status.addresses.find(a => a.type === 'InternalIP')
                     if (!ip) continue
-                    const disks = await $`curl http://${ip.address}:18081/disks.json`
-                    await $`kubectl annotate --overwrite node ${node.metadata.name} node.longhorn.io/default-disks-config=${disks}`
+                    try {
+                      const disks = await $`curl http://${ip.address}:18081/disks.json`
+                      await $`kubectl annotate --overwrite node ${node.metadata.name} node.longhorn.io/default-disks-config=${disks}`
+                    } catch (e) {
+                      console.log(e)
+                    }
                   }
