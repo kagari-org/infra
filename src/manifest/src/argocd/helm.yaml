@@ -21,7 +21,7 @@ valuesInline:
         name: dex
         issuer: https://dex.kagari.org
         clientID: argocd
-        clientSecret: $oidc.dex.clientSecret
+        enablePKCEAuthentication: true
         requestedScopes: ["openid", "profile", "email", "groups"]
     rbac:
       policy.csv: |

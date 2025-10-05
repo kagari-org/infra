@@ -24,13 +24,10 @@ metadata:
 spec:
   plugin:
     traefik-oidc-auth:
-      Secret: urn:k8s:secret:longhorn-oidc-secrets:secret
       Provider:
         Url: https://dex.kagari.org
         ClientId: longhorn
-        ClientSecret: urn:k8s:secret:longhorn-oidc-secrets:client-secret
-      SessionCookie:
-        Secure: false
+        UsePkce: true
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -64,3 +61,14 @@ spec:
     - action: Allow
       source:
         namespaceSelector: kubernetes.io/metadata.name == 'gateway'
+---
+apiVersion: dex.coreos.com/v1
+kind: OAuth2Client
+metadata:
+  name: nrxw4z3in5zg5s7sttsiiirdeu
+  namespace: dex
+name: longhorn
+id: longhorn
+public: true
+redirectURIs:
+  - https://longhorn.kagari.org/oidc/callback

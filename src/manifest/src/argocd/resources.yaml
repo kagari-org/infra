@@ -40,3 +40,14 @@ spec:
           scheme: h2c
   tls:
     secretName: argocd-cert
+---
+apiVersion: dex.coreos.com/v1
+kind: OAuth2Client
+metadata:
+  name: mfzgo33dmtf7fhheqqrcgji
+  namespace: dex
+name: argocd
+id: argocd
+public: true
+redirectURIs:
+  - https://cd.kagari.org/pkce/verify

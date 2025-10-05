@@ -15,8 +15,11 @@ valuesInline:
     pullPolicy: Always
   config:
     issuer: https://dex.kagari.org
+    web:
+      allowedOrigins: ['*']
     oauth2:
       skipApprovalScreen: true
+      responseTypes: ['code']
     storage:
       type: kubernetes
       config:
