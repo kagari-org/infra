@@ -2,7 +2,6 @@
   perSystem = { pkgs, lib, ... }: let
     charts = pkgs.callPackage ./_fetcher/_sources/generated.nix {}
       |> lib.filterAttrs (_: value: value ? src)
-      # |> lib.mapAttrs (_: value: value.src);
       |> lib.mapAttrs (_: value: pkgs.runCommand "chart" {
         passthru = { inherit (value) path; };
       } ''

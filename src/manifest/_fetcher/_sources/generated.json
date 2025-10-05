@@ -67,6 +67,23 @@
         },
         "version": "1.42.2"
     },
+    "dex": {
+        "cargoLocks": null,
+        "date": null,
+        "extract": null,
+        "name": "dex",
+        "passthru": {
+            "path": "dex"
+        },
+        "pinned": false,
+        "src": {
+            "name": null,
+            "sha256": "sha256-JNSGrCGCuRlIOphAM5mXRDeTzmN+PxDTerMoTqoinTM=",
+            "type": "url",
+            "url": "https://github.com/dexidp/helm-charts/releases/download/dex-0.24.0/dex-0.24.0.tgz"
+        },
+        "version": "0.24.0"
+    },
     "longhorn": {
         "cargoLocks": null,
         "date": null,

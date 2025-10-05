@@ -15,11 +15,6 @@ src.manual = "3.12.2"
 fetch.url = "https://github.com/kubernetes-sigs/metrics-server/releases/download/metrics-server-helm-chart-$ver/metrics-server-$ver.tgz"
 passthru.path = "metrics-server"
 
-[longhorn]
-src.manual = "1.9.0"
-fetch.url = "https://github.com/longhorn/longhorn/releases/download/v$ver/charts.tar.gz"
-passthru.path = "charts/longhorn"
-
 [traefik]
 src.manual = "36.0.0"
 fetch.url = "https://traefik.github.io/charts/traefik/traefik-$ver.tgz"
@@ -30,7 +25,17 @@ src.manual = "1.17.2"
 fetch.url = "https://charts.jetstack.io/charts/cert-manager-v$ver.tgz"
 passthru.path = "cert-manager"
 
+[dex]
+src.manual = "0.24.0"
+fetch.url = "https://github.com/dexidp/helm-charts/releases/download/dex-$ver/dex-$ver.tgz"
+passthru.path = "dex"
+
 [argocd]
 src.manual = "8.0.15"
 fetch.url = "https://github.com/argoproj/argo-helm/releases/download/argo-cd-$ver/argo-cd-$ver.tgz"
 passthru.path = "argo-cd"
+
+[longhorn]
+src.manual = "1.9.0"
+fetch.url = "https://github.com/longhorn/longhorn/releases/download/v$ver/charts.tar.gz"
+passthru.path = "charts/longhorn"

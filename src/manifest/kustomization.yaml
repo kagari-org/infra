@@ -5,7 +5,8 @@ components:
   - ./src/calico
   - ./src/coredns
   - ./src/metrics-server
-  - ./src/longhorn
   - ./src/internal-gateway
   - ./src/external-gateway
+  - ./src/dex
   - ./src/argocd
+  - ./src/longhorn

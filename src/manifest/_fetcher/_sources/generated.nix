@@ -37,6 +37,15 @@
     };
     path = "coredns";
   };
+  dex = {
+    pname = "dex";
+    version = "0.24.0";
+    src = fetchurl {
+      url = "https://github.com/dexidp/helm-charts/releases/download/dex-0.24.0/dex-0.24.0.tgz";
+      sha256 = "sha256-JNSGrCGCuRlIOphAM5mXRDeTzmN+PxDTerMoTqoinTM=";
+    };
+    path = "dex";
+  };
   longhorn = {
     pname = "longhorn";
     version = "1.9.0";
