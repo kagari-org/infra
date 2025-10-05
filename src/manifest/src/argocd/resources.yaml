@@ -3,16 +3,27 @@ kind: Namespace
 metadata:
   name: argocd
 ---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: argocd-cert
+  namespace: argocd
+spec:
+  secretName: argocd-cert
+  issuerRef:
+    name: le-issuer
+    kind: ClusterIssuer
+  dnsNames:
+    - cd.kagari.org
+---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: argocd-ingress
   namespace: argocd
-  annotations:
-    kubernetes.io/ingress.class: internal-traefik
 spec:
   entryPoints:
-    - web
+    - websecure
   routes:
     - kind: Rule
       match: Host(`cd.kagari.org`)
@@ -27,35 +38,5 @@ spec:
         - name: argocd-server
           port: 80
           scheme: h2c
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: argocd-hook-cert
-  namespace: argocd
-spec:
-  secretName: argocd-hook-cert
-  issuerRef:
-    name: le-issuer
-    kind: ClusterIssuer
-  dnsNames:
-    - cd-hook.kagari.org
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: argocd-ingress-external
-  namespace: argocd
-  annotations:
-    kubernetes.io/ingress.class: external-traefik
-spec:
-  entryPoints:
-    - websecure
-  routes:
-    - kind: Rule
-      match: Host(`cd-hook.kagari.org`) && Path(`/api/webhook`)
-      services:
-        - name: argocd-server
-          port: 80
   tls:
-    secretName: argocd-hook-cert
+    secretName: argocd-cert

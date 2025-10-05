@@ -16,7 +16,6 @@ valuesInline:
       - --insecure
   configs:
     cm:
-      url: http://cd.kagari.org
       kustomize.buildOptions: --enable-helm --enable-alpha-plugins --enable-exec
       oidc.config: |
         name: dex

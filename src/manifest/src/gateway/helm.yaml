@@ -1,27 +1,21 @@
 apiVersion: builtin
 kind: HelmChartInflationGenerator
 metadata:
-  name: external-traefik
+  name: gateway
 
 name: traefik
 chartHome: ../../charts
-releaseName: external-traefik
-namespace: external-gateway
-# added in internal-gateway
-# includeCRDs: true
+releaseName: gateway
+namespace: gateway
+includeCRDs: true
 valuesInline:
-  ingressClass:
-    isDefaultClass: false
   additionalArguments:
-    - --providers.kubernetesingress.ingressclass=external-traefik
-    - --providers.kubernetescrd.ingressclass=external-traefik
     - --entryPoints.websecure.transport.respondingTimeouts.readTimeout=0
   experimental:
     plugins:
       traefik-oidc-auth:
         moduleName: github.com/sevensolutions/traefik-oidc-auth
         version: v0.16.0
-  # the service of external-traefik obtains external ip from service lb
   service:
     spec:
       trafficDistribution: PreferClose
@@ -38,12 +32,12 @@ valuesInline:
 apiVersion: builtin
 kind: HelmChartInflationGenerator
 metadata:
-  name: external-cert-manager
+  name: cert-manager
 
 name: cert-manager
 chartHome: ../../charts
-releaseName: external-cert-manager
-namespace: external-gateway
+releaseName: cert-manager
+namespace: gateway
 includeCRDs: true
 valuesInline:
   installCRDs: true

@@ -21,8 +21,6 @@ kind: IngressRoute
 metadata:
   name: dex-ingress
   namespace: dex
-  annotations:
-    kubernetes.io/ingress.class: external-traefik
 spec:
   entryPoints:
     - websecure
