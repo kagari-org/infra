@@ -51,3 +51,5 @@ id: argocd
 public: true
 redirectURIs:
   - https://cd.kagari.org/pkce/verify
+  # for argo-cd CLI
+  - http://localhost:8085/auth/callback

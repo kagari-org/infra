@@ -16,6 +16,7 @@ valuesInline:
       - --insecure
   configs:
     cm:
+      admin.enabled: 'false'
       kustomize.buildOptions: --enable-helm --enable-alpha-plugins --enable-exec
       oidc.config: |
         name: dex
