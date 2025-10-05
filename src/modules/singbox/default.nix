@@ -16,12 +16,6 @@
             format = "binary";
             path = "${pkgs.sing-geosite}/share/sing-box/rule-set/geosite-geolocation-cn.srs";
           }
-          {
-            type = "local";
-            tag = "s_geosite-!cn";
-            format = "binary";
-            path = "${pkgs.sing-geosite}/share/sing-box/rule-set/geosite-geolocation-cn.srs";
-          }
         ];
         experimental.clash_api.external_controller = "0.0.0.0:9090";
 
@@ -31,19 +25,14 @@
             { tag = "s_local"; address = "udp://223.5.5.5"; detour = "s_direct"; }
           ];
           rules = [
+            # TODO: migrate to default_domain_resolver, sing-box 1.12.0
             { outbound = "any"; server = "s_local"; }
             { rule_set = "s_geosite-cn"; server = "s_local"; }
-            { domain_suffix = "kagari.org"; server = "s_direct"; }
-            {
-              type = "logical";
-              mode = "and";
-              rules = [
-                { rule_set = "s_geosite-!cn"; invert = true; }
-                { rule_set = "s_geoip-cn"; }
-              ];
-              server = "s_google";
-            }
+
+            { domain_suffix = "kagari.org"; server = "s_local"; }
           ];
+          final = "s_google";
+          client_subnet = "114.114.114.114/24";
         };
 
         inbounds = [ {
