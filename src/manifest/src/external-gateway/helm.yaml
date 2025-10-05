@@ -10,14 +10,18 @@ namespace: external-gateway
 # added in internal-gateway
 # includeCRDs: true
 valuesInline:
-  # the service of external-traefik obtains external ip by service lb
-  # we defined `RequestedServicesOnly` in calico KubeControllersConfiguration
   ingressClass:
     isDefaultClass: false
   additionalArguments:
     - --providers.kubernetesingress.ingressclass=external-traefik
     - --providers.kubernetescrd.ingressclass=external-traefik
     - --entryPoints.websecure.transport.respondingTimeouts.readTimeout=0
+  experimental:
+    plugins:
+      traefik-oidc-auth:
+        moduleName: github.com/sevensolutions/traefik-oidc-auth
+        version: v0.16.0
+  # the service of external-traefik obtains external ip from service lb
   service:
     spec:
       trafficDistribution: PreferClose

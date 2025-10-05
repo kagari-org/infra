@@ -6,11 +6,18 @@ metadata:
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: longhorn-basic-auth
+  name: longhorn-oidc
   namespace: longhorn-system
 spec:
-  basicAuth:
-    secret: longhorn-basic-auth-secret
+  plugin:
+    traefik-oidc-auth:
+      Secret: urn:k8s:secret:longhorn-oidc-secrets:secret
+      Provider:
+        Url: https://dex.kagari.org
+        ClientId: longhorn
+        ClientSecret: urn:k8s:secret:longhorn-oidc-secrets:client-secret
+      SessionCookie:
+        Secure: false
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -26,7 +33,7 @@ spec:
     - kind: Rule
       match: Host(`longhorn.kagari.org`)
       middlewares:
-        - name: longhorn-basic-auth
+        - name: longhorn-oidc
       services:
         - name: longhorn-frontend
           port: 80
