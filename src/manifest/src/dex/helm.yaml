@@ -9,6 +9,10 @@ releaseName: dex
 namespace: dex
 includeCRDs: true
 valuesInline:
+  image:
+    repository: ghcr.io/kagari-org/dex
+    tag: latest
+    pullPolicy: Always
   config:
     issuer: https://dex.kagari.org
     storage:

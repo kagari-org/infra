@@ -16,7 +16,17 @@ valuesInline:
       - --insecure
   configs:
     cm:
+      url: http://cd.kagari.org
       kustomize.buildOptions: --enable-helm --enable-alpha-plugins --enable-exec
+      oidc.config: |
+        name: dex
+        issuer: https://dex.kagari.org
+        clientID: argocd
+        clientSecret: $oidc.dex.clientSecret
+        requestedScopes: ["openid", "profile", "email", "groups"]
+    rbac:
+      policy.csv: |
+        g, argocd_admin, role:admin
   repoServer:
     # https://github.com/viaduct-ai/kustomize-sops?tab=readme-ov-file#argo-cd-helm-chart-with-custom-tooling
     volumes:
