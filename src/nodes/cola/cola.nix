@@ -56,10 +56,12 @@
       services.openssh.ports = [ 16801 22 ];
 
       networking.firewall.allowedTCPPorts = [
-        16801 16802 16803 16804 16805 16806 16807 16808 16809
+        16801 # ssh
+        16807 16808 # mc
+        16809 # cryonet bootstrap
       ];
       networking.firewall.allowedUDPPorts = [
-        16801 16802 16803 16804 16805 16806 16807 16808 16809
+        16804 16805 # wireguard
       ];
 
 

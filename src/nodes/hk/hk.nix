@@ -32,7 +32,7 @@
         allowedTCPPorts      = [
           port
           80 443
-          2022 20000 20001 20002 20003 20004 # pterodactyl
+          445 # samba
         ];
       };
       sops.secrets.coturn-user = {
