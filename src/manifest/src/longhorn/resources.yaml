@@ -24,10 +24,15 @@ metadata:
 spec:
   plugin:
     traefik-oidc-auth:
+      Scopes: [openid, profile, email, groups]
       Provider:
         Url: https://dex.kagari.org
         ClientId: longhorn
         UsePkce: true
+      Authorization:
+        AssertClaims:
+          - Name: groups
+            AnyOf: [admin]
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute

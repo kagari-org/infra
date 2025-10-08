@@ -26,7 +26,7 @@ valuesInline:
         requestedScopes: ["openid", "profile", "email", "groups"]
     rbac:
       policy.csv: |
-        g, argocd_admin, role:admin
+        g, admin, role:admin
   repoServer:
     # https://github.com/viaduct-ai/kustomize-sops?tab=readme-ov-file#argo-cd-helm-chart-with-custom-tooling
     volumes:
