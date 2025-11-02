@@ -2,7 +2,7 @@
   infra.nodes.hk = {
     id = 2;
     address = "hk.s.kagari.org";
-    dns = [ "8.8.8.8" "8.8.4.4" ];
+    dns = [ "1.0.0.1" ];
 
     modules = (modules "nixos") ++ [ ({ modulesPath, config, ... }: {
       # hardware

@@ -21,7 +21,7 @@
 
         dns = {
           servers = [
-            { tag = "s_google"; address = "udp://8.8.8.8"; }
+            { tag = "s_cf"; address = "tls://1.0.0.1"; }
             { tag = "s_local"; address = "udp://223.5.5.5"; detour = "s_direct"; }
           ];
           rules = [
@@ -31,7 +31,7 @@
 
             { domain_suffix = "kagari.org"; server = "s_local"; }
           ];
-          final = "s_google";
+          final = "s_cf";
           client_subnet = "114.114.114.114/24";
         };
 
