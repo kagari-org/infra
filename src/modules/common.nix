@@ -20,6 +20,7 @@
           openssh.authorizedKeys.keys = [
             "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJqu43h92/UcQLf+E7AnUqmjjdGLkcazB9Z9nNRferqD tablet"
             "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDmgw6CGq5fPlVdJc5DhgXzlW2GSimAd1xiRbEZWS0KG phone"
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFSZb49HJ8gM5fufmFZoa7ZmHcVsAPzkPY4l8LbGvmfJ umi"
           ];
         };
       };
