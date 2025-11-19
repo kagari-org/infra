@@ -133,6 +133,8 @@
           } ];
         };
 
+        # cat ~/sub.json | sops encrypt --input-type binary --filename-override src/modules/singbox/secrets.yaml > src/modules/singbox/secrets.yaml
+        # then rename data to singbox-sub
         sops.secrets.singbox-sub.sopsFile = ./secrets.yaml;
         services.sing-box.enable = true;
         systemd.services.sing-box = {
