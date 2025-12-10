@@ -12,16 +12,30 @@ spec:
     loadBalancer:
       assignIPs: RequestedServicesOnly
 ---
+# use 10.42.0.0/16 for workload IP pool (same with --cluster-cidr of k3s)
+
 apiVersion: projectcalico.org/v3
 kind: IPPool
 metadata:
   name: calico-workload-ippool
 spec:
-  # make the same with --cluster-cidr of k3s
-  cidr: 10.42.0.0/16
+  cidr: 10.42.0.0/17
   blockSize: 26
   natOutgoing: true
   assignmentMode: Automatic
+  allowedUses:
+    - Workload
+---
+apiVersion: projectcalico.org/v3
+kind: IPPool
+metadata:
+  name: calico-workload-ippool-singbox-bypass
+spec:
+  # should be consistent with the singbox-bypass-cidr in nixos config
+  cidr: 10.42.128.0/17
+  blockSize: 26
+  natOutgoing: true
+  assignmentMode: Manual
   allowedUses:
     - Workload
 ---

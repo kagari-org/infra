@@ -120,6 +120,12 @@ in {
           description = "table";
           default = 233;
         };
+        # should be consistent with the IPPool resouce of calico
+        pod-bypass-cidr = lib.mkOption {
+          type = str;
+          description = "pod bypass cidr";
+          default = "10.42.128.0/17";
+        };
       };
       config.k3s.disks = [ {
         name = "disk-${name}";

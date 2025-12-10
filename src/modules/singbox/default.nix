@@ -103,12 +103,14 @@
             # bypass reserved ips but dns queries
             ip daddr $RESERVED_IP udp dport != 53 return
             ip daddr $RESERVED_IP tcp dport != 53 return
+            ip saddr ${node.singbox.pod-bypass-cidr} return
             # lookup node.singbox.table, redirect to local
             ip protocol { tcp, udp } meta mark set ${toString node.singbox.mark}
           }
           chain singbox-prerouting {
             type filter hook prerouting priority mangle + 100; policy accept;
             ip daddr $RESERVED_IP return
+            ip saddr ${node.singbox.pod-bypass-cidr} return
             # bypass allowed ports for forwarding packets
             ${lib.optionalString (lib.length config.networking.firewall.allowedTCPPorts != 0) ''
               iifname "cali*" tcp sport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedTCPPorts)} } return
