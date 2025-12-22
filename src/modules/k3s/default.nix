@@ -8,8 +8,14 @@ in {
         networking.firewall.allowedTCPPorts = [ 80 443 ];
         networking.firewall.trustedInterfaces = [ "cali*" ];
 
+        boot.kernelModules = [
+          # for longhorn
+          "dm_crypt"
+          # for nf_conntrack_tcp_be_liberal
+          "nf_conntrack"
+        ];
+
         # for longhorn
-        boot.kernelModules = [ "dm_crypt" ];
         systemd.tmpfiles.rules = [ "L+ /usr/local/bin - - - - /run/current-system/sw/bin/" ];
         environment.systemPackages = [ pkgs.nfs-utils ];
         services.openiscsi = {
