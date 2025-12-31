@@ -23,6 +23,7 @@ in {
       options.dns = lib.mkOption {
         type = listOf str;
         description = "dns servers";
+        default = [];
       };
       options.cryonet.bootstrap = lib.mkOption {
         type = bool;

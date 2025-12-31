@@ -1,7 +1,7 @@
-{
+{ withSystem, ... }: {
   infra.modules = [ {
     type = "nixos";
-    module = { config, pkgs, lib, node, ... }: let
+    module = withSystem "x86_64-linux" ({ self', ... }: { config, pkgs, lib, node, ... }: let
       singbox-config = pkgs.writeText "config.json" (lib.generators.toJSON {} {
         route.rule_set = [
           {
@@ -19,20 +19,15 @@
         ];
         experimental.clash_api.external_controller = "0.0.0.0:9090";
 
+        # bootstrap
         dns = {
           servers = [
-            { tag = "s_cf"; address = "tls://1.0.0.1"; }
             { tag = "s_local"; address = "udp://223.5.5.5"; detour = "s_direct"; }
           ];
           rules = [
             # TODO: migrate to default_domain_resolver, sing-box 1.12.0
             { outbound = "any"; server = "s_local"; }
-            { rule_set = "s_geosite-cn"; server = "s_local"; }
-
-            { domain_suffix = "kagari.org"; server = "s_local"; }
           ];
-          final = "s_cf";
-          client_subnet = "114.114.114.114/24";
         };
 
         inbounds = [ {
@@ -54,13 +49,11 @@
         route = {
           rules = [
             { action = "sniff"; }
-            { action =  "hijack-dns"; protocol = "dns"; }
             { rule_set = "s_geoip-cn"; outbound = "s_direct"; }
             { rule_set = "s_geosite-cn"; outbound = "s_direct"; }
             { ip_is_private = true; outbound = "s_direct"; }
 
-            { domain = "la13-idrive.kagari.org"; outbound = "s_direct"; }
-            { domain = "sg01-idrive.kagari.org"; outbound = "s_direct"; }
+            { domain_suffix = ".kagari.org"; outbound = "s_direct"; }
           ];
           final = "s_out";
           auto_detect_interface = true;
@@ -100,9 +93,9 @@
             type route hook output priority filter + 100; policy accept;
             # accept input connections
             ct mark ${toString node.singbox.direct} return
-            # bypass reserved ips but dns queries
-            ip daddr $RESERVED_IP udp dport != 53 return
-            ip daddr $RESERVED_IP tcp dport != 53 return
+            # bypass reserved ips
+            ip daddr $RESERVED_IP return
+            ip daddr $RESERVED_IP return
             ip saddr ${node.singbox.pod-bypass-cidr} return
             # lookup node.singbox.table, redirect to local
             ip protocol { tcp, udp } meta mark set ${toString node.singbox.mark}
@@ -156,7 +149,38 @@
             ' > /run/sing-box/config.json
           '';
         };
+
+        environment.etc."resolv.conf".text = lib.mkForce "nameserver 127.0.0.1";
+        services.smartdns = {
+          enable = true;
+          settings = {
+            force-AAAA-SOA = "yes";
+            conf-file = [
+                "${self'.packages.smartdns-china-list}/accelerated-domains.china.smartdns.conf"
+                "${self'.packages.smartdns-china-list}/apple.china.smartdns.conf"
+            ];
+            server = [
+                "1.0.0.1"
+                "8.8.8.8"
+                "1.2.4.8 -group domestic -exclude-default-group"
+                "210.2.4.8 -group domestic -exclude-default-group"
+            ];
+            server-tcp = [ "208.67.220.220:443" ];
+            server-https = [
+                "https://146.112.41.2/dns-query"
+                "https://101.101.101.101/dns-query"
+            ];
+            server-tls = [
+                "1.12.12.12:853 -group domestic -exclude-default-group"
+                "120.53.53.53:853 -group domestic -exclude-default-group"
+                "223.5.5.5:853 -group domestic -exclude-default-group"
+                "223.6.6.6:853 -group domestic -exclude-default-group"
+                "114.114.114.114 -group domestic -exclude-default-group"
+                "114.114.115.115 -group domestic -exclude-default-group"
+            ];
+          };
+        };
       };
-    };
+    });
   } ];
 }
