@@ -2,6 +2,7 @@
   infra.nodes.trunc = {
     id = 4;
     address = "10.11.0.4";
+    dns = [ "223.5.5.5" "114.114.114.114" ];
     singbox.enable = true;
 
     modules = (modules "nixos") ++ [ ({ config, pkgs, lib, node, ... }: {
@@ -35,12 +36,6 @@
           iifname "ve-access" masquerade
         }
       '';
-
-      networking.firewall.extraInputRules = ''
-        iifname ve-access udp dport 53 accept
-      '';
-
-      systemd.services."container@access".before = [ "nftables.service" ];
       containers.access = {
         autoStart = true;
         privateNetwork = true;
@@ -72,10 +67,9 @@
             enable = true;
             resolveLocalQueries = false;
             settings = {
-              port = 0;
               interface = "enp3s0";
+              server = [ "223.5.5.5" ];
               dhcp-range = "192.168.1.2,192.168.1.254,24h";
-              dhcp-option = [ "option:dns-server,${node.igp-v4}" ];
 
               enable-tftp = true;
               tftp-root = "${pkgs.ipxe}";
