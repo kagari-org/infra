@@ -3,6 +3,7 @@
     id = 2;
     address = "hk.s.kagari.org";
     dns = [ "1.0.0.1" ];
+    cryonet.bootstrap = true;
 
     modules = (modules "nixos") ++ [ ({ modulesPath, config, ... }: {
       # hardware
@@ -33,6 +34,7 @@
           port
           80 443
           445 # samba
+          2222 # gitea ssh
         ];
       };
       sops.secrets.coturn-user = {

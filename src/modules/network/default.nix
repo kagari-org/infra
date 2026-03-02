@@ -54,22 +54,25 @@ in {
 
       sops.secrets.cryonet-env.sopsFile = ./secrets.yaml;
       systemd.slices.cryonet.wantedBy = [ "nftables.service" ];
+      environment.systemPackages = [ inputs'.cryonet.packages.default ];
       systemd.services.cryonet = {
         wantedBy = [ "multi-user.target" ];
         after = [ "network.target" ];
         environment = {
-          WS_SERVERS = infra.nodes
+          RUST_LOG = "debug";
+          SERVERS = infra.nodes
             |> lib.attrValues
             |> lib.filter (x: x.id != node.id && x.cryonet.bootstrap)
             |> lib.map (x: "wss://${x.address}:16809")
             |> lib.concatStringsSep ",";
-          FILTERED_PREFIXES = "10.11.0.0/16";
+          CANDIDATE_FILTER_PREFIX = "10.11.0.0/16";
         };
         serviceConfig = {
           Restart = "always";
           EnvironmentFile = config.sops.secrets.cryonet-env.path;
-          ExecStart = "${inputs'.cryonet.packages.default}/bin/cryonet --verbose ${toString node.id}";
+          ExecStart = "${inputs'.cryonet.packages.default}/bin/cryonet ${toString node.id}";
           Slice = "cryonet.slice";
+          RuntimeDirectory = "cryonet";
         };
       };
 
@@ -93,6 +96,7 @@ in {
         virtualHosts.${node.address}.extraConfig = ''
           reverse_proxy 127.0.0.1:2333
           tls {
+            alpn http/1.1
             dns cloudflare {$CLOUDFLARE_API_TOKEN}
           }
         '';
