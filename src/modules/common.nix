@@ -24,6 +24,21 @@
           ];
         };
       };
+
+      # activate home manager
+      systemd.services.home-manager = {
+        wantedBy = [ "multi-user.target" ];
+        wants = [ "nix-daemon.socket" ];
+        after = [ "nix-daemon.socket" ];
+        before = [ "systemd-user-sessions.service" ];
+        unitConfig.RequiresMountsFor = "/root";
+        script = ''
+          PROFILE=/nix/var/nix/profiles/per-user/root/home-manager/activate
+          if [ -x "$PROFILE" ]; then
+            HOME=/root exec "$PROFILE"
+          fi
+        '';
+      };
     };
   } ];
 }
