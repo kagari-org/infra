@@ -62,8 +62,6 @@
         fsType = "xfs";
       };
       # config
-      programs.nix-ld.enable = true;
-      virtualisation.docker.enable = true;
       sops.secrets.home-wg = {
         sopsFile = ./secrets.yaml;
         owner = "systemd-network";
