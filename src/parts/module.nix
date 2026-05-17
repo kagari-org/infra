@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ config, lib, ... }:
 
 {
   options.infra = {
@@ -16,4 +16,7 @@
       description = "define a nixos module";
     };
   };
+  config._module.args.modules = type: config.infra.modules
+    |> lib.filter (module: module.type == type)
+    |> map ({ module, ... }: module);
 }

@@ -2,7 +2,7 @@
   cfg = config.infra;
 in {
   options.infra.nodes = lib.mkOption {
-    type = with lib.types; attrsOf (submodule ({ name, config, ... }: {
+    type = with lib.types; attrsOf (submodule ({ config, ... }: {
       options.id = lib.mkOption {
         type = number;
         description = "id";
@@ -34,71 +34,6 @@ in {
         description = "igp v4";
         default = "10.11.0.${toString config.id}";
       };
-      options.k3s = {
-        enable = lib.mkOption {
-          type = bool;
-          description = "enable k3s";
-          default = true;
-        };
-        server = lib.mkOption {
-          type = bool;
-          description = "server node";
-          default = false;
-        };
-        endpoint = lib.mkOption {
-          type = bool;
-          description = "endpoint node";
-          default = false;
-        };
-        zone = lib.mkOption {
-          type = str;
-          description = "zone label for node. Node's name by default.";
-          default = name;
-        };
-        disks = lib.mkOption {
-          type = listOf (submodule ({
-            options.name = lib.mkOption {
-              type = str;
-              description = "name";
-            };
-            options.allowScheduling = lib.mkOption {
-              type = bool;
-              description = "scheduling";
-              default = true;
-            };
-            options.evictionRequested = lib.mkOption {
-              type = bool;
-              description = "eviction requested";
-              default = false;
-            };
-            options.path = lib.mkOption {
-              type = str;
-              description = "path";
-            };
-            options.tags = lib.mkOption {
-              type = listOf str;
-              description = "tags";
-              default = [];
-            };
-            options.diskType = lib.mkOption {
-              type = str;
-              description = "disk type";
-              default = "filesystem";
-            };
-            options.storageReserved = lib.mkOption {
-              type = int;
-              description = "storage reserved in bytes";
-              default = 5 * 1024 * 1024 * 1024; # 5 GiB
-            };
-          }));
-          description = "disks";
-        };
-        extraManifests = lib.mkOption {
-          type = attrsOf anything;
-          description = "extra manifests";
-          default = {};
-        };
-      };
       options.singbox = {
         enable = lib.mkOption {
           type = bool;
@@ -120,20 +55,12 @@ in {
           description = "table";
           default = 233;
         };
-        # should be consistent with the IPPool resouce of calico
-        pod-bypass-cidr = lib.mkOption {
+        /* pod-bypass-cidr = lib.mkOption {
           type = str;
           description = "pod bypass cidr";
           default = "10.42.128.0/17";
-        };
+        }; */
       };
-      config.k3s.disks = [ {
-        name = "disk-${name}";
-        allowScheduling = true;
-        evictionRequested = false;
-        path = "/var/lib/longhorn";
-        tags = [ "default" "disk-${name}" ];
-      } ];
     }));
     description = "nixos definition";
   };

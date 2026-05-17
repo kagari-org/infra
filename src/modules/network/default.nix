@@ -1,4 +1,4 @@
-{ inputs, config, withSystem, ... }: let
+{ config, withSystem, ... }: let
   inherit (config) infra;
 in {
   infra.modules = [ {
@@ -15,11 +15,7 @@ in {
       networking.nftables.checkRuleset = false;
       networking.firewall.checkReversePath = false;
       networking.firewall.trustedInterfaces = [ "cn*" ];
-
-      # TODO: networking.getaddrinfo in 25.11
-      environment.etc."gai.conf".text = ''
-        precedence ::ffff:0:0/96 100
-      '';
+      networking.getaddrinfo.precedence."::ffff:0:0/96" = 100;
 
       boot.kernel.sysctl = {
         "net.ipv4.ip_forward" = 1;
@@ -85,8 +81,8 @@ in {
       services.caddy = lib.mkIf node.cryonet.bootstrap {
         enable = true;
         package = pkgs.caddy.withPlugins {
-          plugins = [ "github.com/caddy-dns/cloudflare@v0.2.1" ];
-          hash = "sha256-Gsuo+ripJSgKSYOM9/yl6Kt/6BFCA6BuTDvPdteinAI=";
+          plugins = [ "github.com/caddy-dns/cloudflare@v0.2.4" ];
+          hash = "sha256-vNSHU7txQLs0m0UChuszURXjEoMj4r1902+1ei0/DaI=";
         };
         environmentFile = config.sops.secrets.caddy-env.path;
         globalConfig = ''
@@ -109,10 +105,6 @@ in {
 
       services.bird = {
         enable = true;
-        package = pkgs.bird3.overrideAttrs (old: {
-          patches = old.patches ++ [ ./proto.patch ];
-        });
-        checkConfig = false;
         config = ''
           router id ${node.igp-v4};
           ipv4 table igp_v4;
