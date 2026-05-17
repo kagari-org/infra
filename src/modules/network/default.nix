@@ -107,25 +107,6 @@ in {
         address = [ "${node.igp-v4}/32" ];
       };
 
-      systemd.services.bird-costs = {
-        path = [ config.services.bird.package ];
-        serviceConfig = {
-          Type = "oneshot";
-          Restart = "on-failure";
-        };
-        script = ''
-          ${lib.getExe self'.packages.costs} "cn" --bfd > /run/bird/costs.conf
-          birdc configure
-        '';
-      };
-      systemd.timers.bird-costs = {
-        wantedBy = [ "timers.target" ];
-        timerConfig = {
-          OnCalendar = "*:0/15"; # every 15 minutes
-          Persistent = true;
-        };
-      };
-      systemd.services.bird.preStart = "touch /run/bird/costs.conf";
       services.bird = {
         enable = true;
         package = pkgs.bird3.overrideAttrs (old: {
@@ -150,23 +131,15 @@ in {
               export all;
           }
 
-          protocol bfd {}
-          protocol ospf v3 {
-            area 0 {
-              include "/run/bird/costs.conf";
-              # fallback
-              interface "cn*" {
-                bfd;
-                cost 65535;
-              };
-            };
+          protocol babel {
+            interface "cn*" { type tunnel; };
             ipv4 {
               table igp_v4;
               import filter {
                 krt_prefsrc = ${node.igp-v4};
                 accept;
               };
-              export where source = RTS_STATIC;
+              export where (source = RTS_STATIC) || (source = RTS_BABEL);
             };
           }
 
