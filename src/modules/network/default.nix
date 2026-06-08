@@ -3,7 +3,7 @@
 in {
   infra.modules = [ {
     type = "nixos";
-    module = withSystem "x86_64-linux" ({ inputs', self', ... }: { config, pkgs, lib, node, ... }: {
+    module = withSystem "x86_64-linux" ({ inputs', ... }: { config, pkgs, lib, node, ... }: {
       networking.useNetworkd = true;
       networking.resolvconf.enable = false;
       services.resolved.enable = false;
@@ -120,7 +120,9 @@ in {
               table igp_v4;
               peer table master4;
               import none;
-              export all;
+              # blackhole routes are set in cluster.nix (cilium)
+              # these prefixes are handled in the netfilter
+              export where dest != RTD_BLACKHOLE;
           }
 
           protocol babel {

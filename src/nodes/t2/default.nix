@@ -20,10 +20,6 @@
       boot.initrd.kernelModules = [ "nvme" ];
       fileSystems."/boot/efi" = { device = "/dev/disk/by-uuid/B674-8A3B"; fsType = "vfat"; };
       fileSystems."/" = { device = "/dev/vda3"; fsType = "ext4"; };
-      swapDevices = [ {
-        device = "/swap";
-        size = 8 * 1024;
-      } ];
       # config
       networking.firewall.allowedTCPPorts = [
         80 443
