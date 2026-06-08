@@ -21,12 +21,10 @@
 
         dns = {
           servers = [
-            { tag = "s_cf"; address = "tls://1.0.0.1"; }
-            { tag = "s_local"; address = "udp://223.5.5.5"; detour = "s_direct"; }
+            { tag = "s_cf"; type = "udp"; server = "1.0.0.1"; }
+            { tag = "s_local"; type = "udp"; server = "223.5.5.5"; }
           ];
           rules = [
-            # TODO: migrate to default_domain_resolver, sing-box 1.12.0
-            { outbound = "any"; server = "s_local"; }
             { rule_set = "s_geosite-cn"; server = "s_local"; }
 
             { domain_suffix = "kagari.org"; server = "s_local"; }
@@ -64,6 +62,8 @@
           ];
           final = "s_out";
           auto_detect_interface = true;
+          # resolve domains of outbound addresses
+          default_domain_resolver = "s_local";
         };
       });
     in {
@@ -103,22 +103,20 @@
             # bypass reserved ips but dns queries
             ip daddr $RESERVED_IP udp dport != 53 return
             ip daddr $RESERVED_IP tcp dport != 53 return
-            ip saddr ${node.singbox.pod-bypass-cidr} return
             # lookup node.singbox.table, redirect to local
             ip protocol { tcp, udp } meta mark set ${toString node.singbox.mark}
           }
           chain singbox-prerouting {
             type filter hook prerouting priority mangle + 100; policy accept;
             ip daddr $RESERVED_IP return
-            ip saddr ${node.singbox.pod-bypass-cidr} return
             # bypass allowed ports for forwarding packets
             ${lib.optionalString (lib.length config.networking.firewall.allowedTCPPorts != 0) ''
-              iifname "cali*" tcp sport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedTCPPorts)} } return
-              oifname "cali*" tcp dport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedTCPPorts)} } return
+              iifname "lxc*" tcp sport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedTCPPorts)} } return
+              oifname "lxc*" tcp dport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedTCPPorts)} } return
             ''}
             ${lib.optionalString (lib.length config.networking.firewall.allowedUDPPorts != 0) ''
-              iifname "cali*" udp sport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedUDPPorts)} } return
-              oifname "cali*" udp dport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedUDPPorts)} } return
+              iifname "lxc*" udp sport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedUDPPorts)} } return
+              oifname "lxc*" udp dport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedUDPPorts)} } return
             ''}
             ip protocol { tcp, udp } meta mark set ${toString node.singbox.mark} tproxy ip to 127.0.0.1:9898
           }
@@ -142,7 +140,8 @@
         systemd.services.sing-box = {
           path = with pkgs; [ jq ];
           serviceConfig.LoadCredential = "sub:${config.sops.secrets.singbox-sub.path}";
-          preStart = lib.mkForce ''
+          serviceConfig.ExecStartPre = lib.mkForce "${pkgs.writeScript "generate-config" ''
+            #!${pkgs.runtimeShell}
             export OUTBOUNDS=$(mktemp)
             jq -r '[.outbounds[] | select(.type | contains("vmess", "shadowsocks"))]' \
               $CREDENTIALS_DIRECTORY/sub > $OUTBOUNDS
@@ -154,7 +153,7 @@
             cat ${singbox-config} $SELECT $URLTEST $OUTBOUNDS | jq -s -r '
               .[0].outbounds += .[1] + .[2] + .[3] | .[0]
             ' > /run/sing-box/config.json
-          '';
+          ''}";
         };
       };
     };
