@@ -70,6 +70,10 @@ in {
           disable-network-policy = true;
         });
         manifests.karmada-certs.source = config.sops.secrets.karmada-certs.path;
+        extraKubeletConfig = {
+          featureGates.NodeSwap = true;
+          memorySwap.swapBehavior = "LimitedSwap";
+        };
         autoDeployCharts.cilium = {
           name = "cilium";
           repo = "https://helm.cilium.io";
@@ -91,8 +95,8 @@ in {
         autoDeployCharts.karmada = {
           name = "karmada";
           package = pkgs.fetchurl {
-            url = "https://github.com/kagari-org/karmada/releases/download/v1.17.2/karmada-chart-v1.17.2.tgz";
-            hash = "sha256-4s4+F94hIpNAu7sPEEa3HFwLI9B5v5p0Q04Awgfo9/c=";
+            url = "https://github.com/kagari-org/karmada/releases/download/v1.18.0/karmada-chart-v1.18.0.tgz";
+            hash = "sha256-LoOmXXQCkOrkfDaF1GsVbAajcpkPCSfaylLCftRXPrE=";
           };
           targetNamespace = "karmada-system";
           createNamespace = true;
@@ -102,6 +106,10 @@ in {
               external.servers = "https://${node.igp-v4}:2379";
             };
             certs.mode = "custom";
+            apiServer.resources = {
+              requests.memory = "128Mi";
+              limits.memory = "1Gi";
+            };
           };
           extraFieldDefinitions.spec.valuesSecrets = [ {
             name = "karmada-certs";

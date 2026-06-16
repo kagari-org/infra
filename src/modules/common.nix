@@ -6,6 +6,7 @@
       system.stateVersion = "25.05";
       services.openssh.enable = true;
       networking.hostName = lib.mkDefault name;
+      zramSwap.enable = true;
       nix = {
         nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
         registry.p.flake = inputs.nixpkgs;
