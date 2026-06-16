@@ -60,7 +60,7 @@ in {
         enable = true;
         role = "server";
         tokenFile = config.sops.secrets.k3s-token.path;
-        disable = [ "traefik" "servicelb" ];
+        disable = [ "traefik" ];
         configPath = pkgs.writeText "k3s-config.yaml" (lib.generators.toYAML {} {
           inherit cluster-cidr service-cidr cluster-dns;
           node-ip = node.igp-v4;
@@ -68,6 +68,7 @@ in {
 
           flannel-backend = "none";
           disable-network-policy = true;
+          disable-kube-proxy = true;
         });
         manifests.karmada-certs.source = config.sops.secrets.karmada-certs.path;
         extraKubeletConfig = {
@@ -87,9 +88,10 @@ in {
             ipam.operator.clusterPoolIPv4PodCIDRList = [ cluster-cidr ];
             routingMode = "native";
             ipv4NativeRoutingCIDR = cidr;
-            nodeIPAM.enabled = true;
+            nodeIPAM.enabled = false;
             enableLBIPAM = false;
-            defaultLBServiceIPAM = "nodeipam";
+            defaultLBServiceIPAM = "none";
+            kubeProxyReplacement = "true";
           };
         };
         autoDeployCharts.karmada = {
