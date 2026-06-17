@@ -33,11 +33,18 @@
           client_subnet = "114.114.114.114/24";
         };
 
-        inbounds = [ {
-          type = "tproxy";
-          tag = "s_tproxy-in";
-          listen_port = 9898;
-        } ];
+        inbounds = [
+          {
+            type = "tproxy";
+            tag = "s_tproxy-in";
+            listen_port = 9898;
+          }
+          {
+            type = "mixed";
+            tag = "s_mmixed-in";
+            listen_port = 7897;
+          }
+        ];
 
         outbounds = [
           {

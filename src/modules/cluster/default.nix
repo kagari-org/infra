@@ -92,6 +92,7 @@ in {
             enableLBIPAM = false;
             defaultLBServiceIPAM = "none";
             kubeProxyReplacement = "true";
+            bpf.lbExternalClusterIP = true;
           };
         };
         autoDeployCharts.karmada = {
