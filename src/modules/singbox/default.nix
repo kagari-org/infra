@@ -21,7 +21,7 @@
 
         dns = {
           servers = [
-            { tag = "s_cf"; type = "udp"; server = "1.0.0.1"; }
+            { tag = "s_cf"; type = "udp"; server = "1.0.0.1"; detour = "s_out"; }
             { tag = "s_local"; type = "udp"; server = "223.5.5.5"; }
           ];
           rules = [
