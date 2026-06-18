@@ -60,7 +60,7 @@ in {
         enable = true;
         role = "server";
         tokenFile = config.sops.secrets.k3s-token.path;
-        disable = [ "traefik" ];
+        disable = [ "traefik" "servicelb" ];
         configPath = pkgs.writeText "k3s-config.yaml" (lib.generators.toYAML {} {
           inherit cluster-cidr service-cidr cluster-dns;
           node-ip = node.igp-v4;
@@ -85,13 +85,23 @@ in {
           extraFieldDefinitions.spec.bootstrap = true;
           values = {
             operator.replicas = 1;
-            ipam.operator.clusterPoolIPv4PodCIDRList = [ cluster-cidr ];
-            routingMode = "native";
-            ipv4NativeRoutingCIDR = cidr;
-            nodeIPAM.enabled = false;
-            enableLBIPAM = false;
-            defaultLBServiceIPAM = "none";
+
+            k8sServiceHost = node.igp-v4;
+            k8sServicePort = "6443";
             kubeProxyReplacement = "true";
+
+            devices = lib.mkDefault "cn0";
+            forceDeviceDetection = true;
+            ipv4NativeRoutingCIDR = cidr;
+            nodePort.directRoutingDevice = "cn0";
+            routingMode = "native";
+
+            ipam.operator.clusterPoolIPv4PodCIDRList = [ cluster-cidr ];
+            nodeIPAM.enabled = true;
+
+            defaultLBServiceIPAM = "nodeipam";
+            enableLBIPAM = false;
+
             bpf.lbExternalClusterIP = true;
           };
         };
@@ -113,6 +123,7 @@ in {
               requests.memory = "128Mi";
               limits.memory = "1Gi";
             };
+            controllerManager.featureGates.PropagateDeps = true;
           };
           extraFieldDefinitions.spec.valuesSecrets = [ {
             name = "karmada-certs";

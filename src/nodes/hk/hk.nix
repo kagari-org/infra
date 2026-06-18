@@ -20,6 +20,7 @@
         size = 8 * 1024;
       } ];
       # config
+      services.k3s.extraFlags = [ "--node-external-ip 102.134.53.17" ];
       networking.firewall = let
         port = config.services.coturn.listening-port;
         range = {

@@ -14,7 +14,7 @@ in {
       networking.nftables.enable = true;
       networking.nftables.checkRuleset = false;
       networking.firewall.checkReversePath = false;
-      networking.firewall.trustedInterfaces = [ "cn*" ];
+      networking.firewall.trustedInterfaces = [ "cn0" ];
       networking.getaddrinfo.precedence."::ffff:0:0/96" = 100;
 
       boot.kernel.sysctl = {
@@ -44,7 +44,7 @@ in {
       '';
 
       systemd.network.networks.cryonet = {
-        matchConfig.Name = "cn*";
+        matchConfig.Name = "cn0";
         address = [ "${node.igp-v4}/24" ];
       };
 
@@ -55,7 +55,7 @@ in {
         wantedBy = [ "multi-user.target" ];
         after = [ "network.target" ];
         environment = {
-          RUST_LOG = "debug";
+          TAP_MODE = "true";
           SERVERS = infra.nodes
             |> lib.attrValues
             |> lib.filter (x: x.id != node.id && x.cryonet.bootstrap)
@@ -126,7 +126,7 @@ in {
           }
 
           protocol babel {
-            interface "cn*" { type tunnel; };
+            interface "cn0" { type tunnel; };
             ipv4 {
               table igp_v4;
               import filter {
