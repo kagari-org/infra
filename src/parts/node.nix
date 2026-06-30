@@ -34,6 +34,11 @@ in {
         description = "igp v4";
         default = "10.11.0.${toString config.id}";
       };
+      options.k3s.control = lib.mkOption {
+        type = bool;
+        description = "deploy karmada control plane";
+        default = true;
+      };
       options.singbox = {
         enable = lib.mkOption {
           type = bool;
