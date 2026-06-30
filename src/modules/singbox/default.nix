@@ -150,7 +150,7 @@
           serviceConfig.ExecStartPre = lib.mkForce "${pkgs.writeScript "generate-config" ''
             #!${pkgs.runtimeShell}
             export OUTBOUNDS=$(mktemp)
-            jq -r '[.outbounds[] | select(.type | contains("vmess", "shadowsocks"))]' \
+            jq -r '[.outbounds[] | select(.type | contains("vmess", "shadowsocks", "anytls"))]' \
               $CREDENTIALS_DIRECTORY/sub > $OUTBOUNDS
             export SELECT=$(mktemp)
             jq -r '[[.[].tag] | {tag: "s_select", type: "selector", outbounds: .}]' $OUTBOUNDS > $SELECT
