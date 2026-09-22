@@ -30,7 +30,10 @@
         };
       in {
         allowedUDPPortRanges = [ range ];
-        allowedUDPPorts      = [ port ];
+        allowedUDPPorts      = [
+          port
+          16807 16808 # factorio
+        ];
         allowedTCPPortRanges = [ range ];
         allowedTCPPorts      = [
           port

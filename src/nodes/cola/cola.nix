@@ -38,6 +38,7 @@
         size = 8 * 1024;
       } ];
       # config
+      services.k3s.extraFlags = [ "--node-external-ip 10.10.10.119" ];
       networking.hostName = "Anillc-linux";
       virtualisation.vmware.guest = {
           enable = true;
@@ -52,6 +53,7 @@
       ];
       networking.firewall.allowedUDPPorts = [
         16804 16805 # wireguard
+        16807 16808 # factorio
       ];
 
 
