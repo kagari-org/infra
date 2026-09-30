@@ -126,7 +126,16 @@ in {
           }
 
           protocol babel {
-            interface "cn0" { type tunnel; };
+            interface "cn0" {
+              type tunnel;
+              hello interval 30 s;
+              update interval 120 s;
+              limit 10;
+              check link no;
+              rtt min 200 ms;
+              rtt max 4 s;
+              rtt decay 8;
+            };
             ipv4 {
               table igp_v4;
               import filter {
