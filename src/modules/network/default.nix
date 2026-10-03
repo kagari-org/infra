@@ -127,13 +127,12 @@ in {
 
           protocol babel {
             interface "cn0" {
-              type tunnel;
-              hello interval 30 s;
-              update interval 120 s;
-              limit 10;
-              check link no;
-              rtt min 200 ms;
-              rtt max 4 s;
+              type wireless;
+              hello interval 10 s;
+              update interval 40 s;
+              rtt cost 160;
+              rtt min 40 ms;
+              rtt max 120 ms;
               rtt decay 8;
             };
             ipv4 {
