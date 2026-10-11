@@ -7,7 +7,7 @@
     singbox.enable = true;
     cryonet.bootstrap = true;
 
-    modules = (modules "nixos") ++ [ ({ config, lib, ... }: {
+    modules = (modules "nixos") ++ [ ({ config, lib, pkgs, ... }: {
       # hardware
       hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
       boot.initrd.availableKernelModules = [ "ata_piix" "ahci" "vmw_pvscsi" "sd_mod" "sr_mod" ];
@@ -62,6 +62,43 @@
         owner = "systemd-network";
         group = "systemd-network";
       };
+
+      # garage s3
+      sops.secrets.garage-env = {
+        sopsFile = ./secrets.yaml;
+      };
+      users.groups.garage = {};
+      users.users.garage = {
+        group = "garage";
+        isSystemUser = true;
+      };
+      services.garage = {
+        enable = true;
+        package = pkgs.garage_2;
+        environmentFile = config.sops.secrets.garage-env.path;
+        settings = {
+          data_dir = "/data/garage";
+          rpc_bind_addr = "[::]:3901";
+
+          replication_factor = 1;
+
+          s3_api = {
+            api_bind_addr = "[::]:3900";
+            s3_region = "kagari";
+          };
+
+          admin.api_bind_addr = "127.0.0.1:3903";
+        };
+      };
+      systemd.services.garage.serviceConfig = {
+        User = "garage";
+        ReadWriteDirectories = [ "/data/garage" ];
+        TimeoutSec = 300;
+      };
+      systemd.tmpfiles.rules = [
+        "d /data/garage 0770 garage garage - -"
+      ];
+
       systemd.network.netdevs.onekvm = {
         netdevConfig = {
           Name = "onekvm";
