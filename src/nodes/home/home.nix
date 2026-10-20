@@ -7,7 +7,15 @@
 
     modules = (modules "nixos") ++ [ ({ modulesPath, config, lib, nodes, ... }: {
       # hardware
-      imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+      imports = [
+        (modulesPath + "/installer/scan/not-detected.nix")
+        # Temporary: Immich 3.x module from unstable; use the system module after the bump.
+        "${inputs.nixpkgs-unstable}/nixos/modules/services/web-apps/immich.nix"
+      ];
+      # Temporary: keep 25.11's Immich module out of the way; remove after the bump.
+      disabledModules = [ "${modulesPath}/services/web-apps/immich.nix" ];
+      # Temporary: 25.11's manual rejects the unstable Immich anchors; re-enable after the bump.
+      documentation.nixos.enable = false;
       boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usbhid" "usb_storage" "sd_mod" ];
       boot.kernelModules = [ "kvm-intel" ];
       boot.loader.systemd-boot.enable = true;
@@ -104,12 +112,14 @@
 
       # The old Atuin CNPG is 17.5; unstable defaults to PostgreSQL 18.
       # pg_restore 18 restores the 17 dump forward, and the system bump keeps 18.
+      # Temporary: drop this after the bump so the system package is used.
       services.postgresql.package =
         inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.postgresql;
 
       services.atuin = {
         enable = true;
         host = "0.0.0.0";
+        # Temporary: atuin from unstable; remove after the bump.
         package = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.atuin;
       };
 
@@ -125,6 +135,7 @@
       services.vaultwarden = {
         enable = true;
         domain = "vw.anil.lc";
+        # Temporary: vaultwarden + web vault from unstable; remove after the bump.
         package = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.vaultwarden;
         webVaultPackage = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.vaultwarden.webvault;
         environmentFile = config.sops.secrets.vaultwarden-admin.path;
@@ -144,6 +155,7 @@
 
       services.forgejo = {
         enable = true;
+        # Temporary: Forgejo LTS from unstable; remove after the bump.
         package = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.forgejo-lts;
         lfs.enable = true;
         settings = {
@@ -166,6 +178,15 @@
             REPO_INDEXER_ENABLED = true;
           };
         };
+      };
+
+      services.immich = {
+        enable = true;
+        host = "";
+        # Temporary: Immich from unstable; remove after the bump.
+        package = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.immich;
+        mediaLocation = "/data/immich";
+        machine-learning.enable = true;
       };
 
     }) ];
