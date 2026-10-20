@@ -7,6 +7,8 @@
   inputs.deploy.url = "github:serokell/deploy-rs";
   inputs.sops-nix.url = "github:Mic92/sops-nix";
   inputs.cryonet.url = "github:kagari-org/cryonet";
+  inputs.stable-npm.url = "github:Anillc/stable-npm";
+  inputs.substituter-api.url = "github:Anillc/substituter-api";
 
   outputs = inputs@{
     self, nixpkgs, flake-parts, import-tree, ...
