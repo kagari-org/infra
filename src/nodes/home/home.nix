@@ -118,6 +118,24 @@
       systemd.services.atuin.serviceConfig.ExecStart =
         lib.mkForce "${lib.getExe' config.services.atuin.package "atuin-server"} start";
 
+      sops.secrets.vaultwarden-admin = {
+        sopsFile = ./secrets.yaml;
+      };
+
+      services.vaultwarden = {
+        enable = true;
+        domain = "vw.anil.lc";
+        package = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.vaultwarden;
+        webVaultPackage = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.vaultwarden.webvault;
+        environmentFile = config.sops.secrets.vaultwarden-admin.path;
+        config = {
+          # 8222 matches the current k8s EndpointSlice; drop this and use
+          # Vaultwarden's default 8000 after the k8s route is removed.
+          ROCKET_PORT = 8222;
+          SIGNUPS_ALLOWED = false;
+        };
+      };
+
     }) ];
   };
 }
