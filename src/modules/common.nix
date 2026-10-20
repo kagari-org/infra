@@ -7,6 +7,10 @@
       services.openssh.enable = true;
       networking.hostName = lib.mkDefault name;
       zramSwap.enable = true;
+      services.prometheus.exporters.node = {
+        enable = true;
+        port = 9101;
+      };
       nix = {
         nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
         registry.p.flake = inputs.nixpkgs;

@@ -5,7 +5,7 @@
     dns = [ "223.5.5.5" "114.114.114.114" ];
     singbox.enable = true;
 
-    modules = (modules "nixos") ++ [ ({ modulesPath, config, ... }: {
+    modules = (modules "nixos") ++ [ ({ modulesPath, config, lib, nodes, ... }: {
       # hardware
       imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
       boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usbhid" "usb_storage" "sd_mod" ];
@@ -55,6 +55,48 @@
         matchConfig.Name = "cola";
         networkConfig.Address = "fe80::1/64";
       };
+
+      sops.secrets.grafana-admin = {
+        sopsFile = ./secrets.yaml;
+        owner = "grafana";
+      };
+
+      services.prometheus = {
+        enable = true;
+        port = 9091;
+        scrapeConfigs = [
+          {
+            job_name = "node";
+            static_configs = [
+              { targets = map (n: "${n.igp-v4}:9101") (lib.attrValues nodes); }
+            ];
+          }
+        ];
+      };
+
+      services.grafana = {
+        enable = true;
+        settings = {
+          server = {
+            http_addr = "0.0.0.0";
+            root_url = "https://dash.kagari.org/";
+          };
+          security = {
+            admin_user = "Anillc";
+            admin_password = "$__file{${config.sops.secrets.grafana-admin.path}}";
+          };
+          analytics.reporting_enabled = false;
+        };
+        provision.datasources.settings.datasources = [
+          {
+            name = "Prometheus";
+            type = "prometheus";
+            url = "http://127.0.0.1:9091";
+            isDefault = true;
+          }
+        ];
+      };
+
     }) ];
   };
 }

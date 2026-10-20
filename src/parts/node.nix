@@ -76,6 +76,7 @@ in {
         inherit (node) modules;
         specialArgs = {
           inherit name node;
+          nodes = cfg.nodes;
         };
       });
     deploy.nodes = cfg.nodes
