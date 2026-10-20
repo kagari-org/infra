@@ -1,5 +1,7 @@
 {
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+  # Temporary bridge for packages newer than 25.11 (e.g. atuin). Remove after the system bump.
+  inputs.nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
   inputs.flake-parts.url = "github:hercules-ci/flake-parts";
   inputs.import-tree.url = "github:vic/import-tree";
   inputs.deploy.url = "github:serokell/deploy-rs";

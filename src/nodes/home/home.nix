@@ -97,6 +97,27 @@
         ];
       };
 
+      services.trilium-server = {
+        enable = true;
+        host = "0.0.0.0";
+      };
+
+      # The old Atuin CNPG is 17.5; unstable defaults to PostgreSQL 18.
+      # pg_restore 18 restores the 17 dump forward, and the system bump keeps 18.
+      services.postgresql.package =
+        inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.postgresql;
+
+      services.atuin = {
+        enable = true;
+        host = "0.0.0.0";
+        package = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.atuin;
+      };
+
+      # 25.11's module runs `atuin server start`; the newer atuin package splits
+      # the server into a separate `atuin-server` binary. Remove after the system bump.
+      systemd.services.atuin.serviceConfig.ExecStart =
+        lib.mkForce "${lib.getExe' config.services.atuin.package "atuin-server"} start";
+
     }) ];
   };
 }
