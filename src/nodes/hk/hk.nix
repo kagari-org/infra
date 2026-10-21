@@ -61,10 +61,7 @@
         recommendedTlsSettings = true;
         recommendedOptimisation = true;
         recommendedGzipSettings = true;
-        appendHttpConfig = ''
-          proxy_buffering off;
-          client_max_body_size 0;
-        '';
+        clientMaxBodySize = "0";
         virtualHosts = {
           "dash.kagari.org" = {
             enableACME = true;

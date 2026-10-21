@@ -26,11 +26,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1792561632,
-        "narHash": "sha256-Ta/ql5MEUa67ojS8ylK21sE4R9FHHoBrwgZc56+WQ68=",
+        "lastModified": 1792604761,
+        "narHash": "sha256-XbikwSV9CKA2qjTGKGbaSk+UmlNvnXUHQITKdpUtgks=",
         "owner": "kagari-org",
         "repo": "cryonet",
-        "rev": "616aed2821ed92188fc106022495b4fc503e1d87",
+        "rev": "c0b1bfd67d04d3969e92284074d1aa6e72833329",
         "type": "github"
       },
       "original": {
