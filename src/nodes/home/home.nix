@@ -69,6 +69,11 @@
         owner = "grafana";
       };
 
+      sops.secrets.multica-env = {
+        sopsFile = ./secrets.yaml;
+        mode = "0400";
+      };
+
       services.prometheus = {
         enable = true;
         port = 9091;
@@ -188,6 +193,21 @@
         package = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.immich;
         mediaLocation = "/data/immich";
         machine-learning.enable = true;
+      };
+
+      services.multica = {
+        enable = true;
+        environmentFile = config.sops.secrets.multica-env.path;
+        frontend = {
+          listenAddress = "0.0.0.0";
+          port = 3004;
+          publicUrl = "https://multica.ani.llc";
+        };
+        backend = {
+          port = 8082;
+          publicUrl = "https://multica.ani.llc";
+        };
+        web.remoteApiUrl = "http://127.0.0.1:8082";
       };
 
       systemd.services.stable-npm = {
