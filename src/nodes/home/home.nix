@@ -261,6 +261,49 @@
         "d /var/lib/new-api/logs 0755 root root -"
       ];
 
+      sops.secrets.agents-multica-key.sopsFile = ./secrets.yaml;
+
+      containers.agents = {
+        autoStart = true;
+        bindMounts."/run/secrets" = {};
+        config = { pkgs, ... }: let
+          unstable = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
+        in {
+          system.stateVersion = "25.11";
+          networking.hostName = "agents";
+          nix = {
+            nixPath = [ "nixpkgs=${pkgs.path}" ];
+            registry.p.to = {
+              type = "path";
+              path = "${pkgs.path}";
+            };
+            settings.experimental-features = [ "nix-command" "flakes" ];
+          };
+          environment.systemPackages = [
+            unstable.multica-cli
+            pkgs.git
+            pkgs.gh
+            pkgs.jq
+            pkgs.ripgrep
+            pkgs.curl
+          ];
+          systemd.services.multica = {
+            wantedBy = [ "multi-user.target" ];
+            wants = [ "network-online.target" ];
+            after = [ "network-online.target" ];
+            path = [ unstable.multica-cli pkgs.git pkgs.gh ];
+            serviceConfig.Restart = "always";
+            script = ''
+              export HOME=/root
+              multica config set server_url https://multica.ani.llc
+              multica config set app_url https://multica.ani.llc
+              cat ${config.sops.secrets.agents-multica-key.path} | xargs multica login --token
+              multica daemon start --foreground
+            '';
+          };
+        };
+      };
+
       systemd.services.stable-npm = {
         wantedBy = [ "multi-user.target" ];
         serviceConfig = {
