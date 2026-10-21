@@ -11,6 +11,7 @@
         (modulesPath + "/installer/scan/not-detected.nix")
         # Temporary: Immich 3.x module from unstable; use the system module after the bump.
         "${inputs.nixpkgs-unstable}/nixos/modules/services/web-apps/immich.nix"
+        inputs.buildbot-nix.nixosModules.buildbot-master
       ];
       # Temporary: keep 25.11's Immich module out of the way; remove after the bump.
       disabledModules = [ "${modulesPath}/services/web-apps/immich.nix" ];
@@ -300,6 +301,62 @@
               cat ${config.sops.secrets.agents-multica-key.path} | xargs multica login --token
               multica daemon start --foreground
             '';
+          };
+        };
+      };
+
+      sops.secrets.harmonia-sign-key.sopsFile = ./secrets.yaml;
+      sops.secrets.buildbot-app-secret-key.sopsFile = ./secrets.yaml;
+      sops.secrets.buildbot-oauth-secret.sopsFile = ./secrets.yaml;
+      sops.secrets.buildbot-webhook-secret.sopsFile = ./secrets.yaml;
+      sops.secrets.buildbot-worker-password.sopsFile = ./secrets.yaml;
+      sops.secrets.buildbot-workers.sopsFile = ./secrets.yaml;
+
+      services.harmonia = {
+        enable = true;
+        signKeyPaths = [ config.sops.secrets.harmonia-sign-key.path ];
+        settings.bind = "0.0.0.0:8086";
+      };
+
+      services.nginx.defaultHTTPListenPort = 8087;
+
+      services.buildbot-nix.master = {
+        enable = true;
+        domain = "buildbot.ani.llc";
+        useHTTPS = true;
+        outputsPath = "/var/www/buildbot/nix-outputs/";
+        workersFile = config.sops.secrets.buildbot-workers.path;
+        admins = [ "Anillc" "Emin017" ];
+        github = {
+          appId = 4115237;
+          appSecretKeyFile = config.sops.secrets.buildbot-app-secret-key.path;
+          oauthId = "Iv23ligVsrNcpEqbzl21";
+          oauthSecretFile = config.sops.secrets.buildbot-oauth-secret.path;
+          webhookSecretFile = config.sops.secrets.buildbot-webhook-secret.path;
+          topic = "buildbot-nix";
+          userAllowlist = [ "Anillc" "kagari-org" "openecos-projects" ];
+        };
+      };
+
+      containers.builder = {
+        autoStart = true;
+        bindMounts."/run/secrets" = {};
+        config = { pkgs, ... }: {
+          imports = [ inputs.buildbot-nix.nixosModules.buildbot-worker ];
+          system.stateVersion = "25.11";
+          networking.hostName = "builder";
+          nix = {
+            nixPath = [ "nixpkgs=${pkgs.path}" ];
+            registry.p.to = {
+              type = "path";
+              path = "${pkgs.path}";
+            };
+            settings.experimental-features = [ "nix-command" "flakes" ];
+          };
+          services.buildbot-nix.worker = {
+            enable = true;
+            name = "forge";
+            workerPasswordFile = config.sops.secrets.buildbot-worker-password.path;
           };
         };
       };

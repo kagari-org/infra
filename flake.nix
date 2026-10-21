@@ -9,6 +9,7 @@
   inputs.cryonet.url = "github:kagari-org/cryonet";
   inputs.stable-npm.url = "github:Anillc/stable-npm";
   inputs.substituter-api.url = "github:Anillc/substituter-api";
+  inputs.buildbot-nix.url = "github:nix-community/buildbot-nix";
 
   outputs = inputs@{
     self, nixpkgs, flake-parts, import-tree, ...
