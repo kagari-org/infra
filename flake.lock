@@ -22,14 +22,15 @@
     "cryonet": {
       "inputs": {
         "flake-parts": "flake-parts",
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs_2",
+        "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1790949920,
-        "narHash": "sha256-6DyEh8EMSNPXUed6rPDP3GZBQAt6f4l3Rmr17DHMNSU=",
+        "lastModified": 1792561632,
+        "narHash": "sha256-Ta/ql5MEUa67ojS8ylK21sE4R9FHHoBrwgZc56+WQ68=",
         "owner": "kagari-org",
         "repo": "cryonet",
-        "rev": "4baf860ee82e28c9dd7753e8ea1c0b6c9297e55d",
+        "rev": "616aed2821ed92188fc106022495b4fc503e1d87",
         "type": "github"
       },
       "original": {
@@ -352,6 +353,27 @@
         "sops-nix": "sops-nix",
         "stable-npm": "stable-npm",
         "substituter-api": "substituter-api"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "cryonet",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791101754,
+        "narHash": "sha256-y/GF+9B0t0TZ0nQiSRMqDXpr76yT7sdDbS/3GNLhzkE=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "dbc715a4b7c0ace63b9769a032d1dd34cd89e5bd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
       }
     },
     "sops-nix": {
