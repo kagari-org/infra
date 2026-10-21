@@ -120,9 +120,7 @@ in {
               table igp_v4;
               peer table master4;
               import none;
-              # blackhole routes are set in cluster.nix (cilium)
-              # these prefixes are handled in the netfilter
-              export where dest != RTD_BLACKHOLE;
+              export all;
           }
 
           protocol babel {

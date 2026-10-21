@@ -22,7 +22,7 @@
       devShells.default = pkgs.mkShell {
         nativeBuildInputs = with pkgs; [
           sops age ssh-to-age nvfetcher
-          kustomize kubernetes-helm openssl
+          openssl
           inputs'.deploy.packages.default
           inputs'.sops-nix.packages.default
         ];

@@ -25,7 +25,6 @@
       };
 
       # config
-      services.k3s.autoDeployCharts.cilium.values.devices = "cn0,ve-access";
       sops.secrets.trunc-wg = {
         sopsFile = ./secrets.yaml;
         owner = "systemd-network";
