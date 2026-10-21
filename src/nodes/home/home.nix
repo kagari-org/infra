@@ -86,7 +86,7 @@
 
       services.prometheus = {
         enable = true;
-        port = 9091;
+        port = 3014;
         scrapeConfigs = [
           {
             job_name = "node";
@@ -114,7 +114,7 @@
           {
             name = "Prometheus";
             type = "prometheus";
-            url = "http://127.0.0.1:9091";
+            url = "http://127.0.0.1:3014";
             isDefault = true;
           }
         ];
@@ -123,6 +123,7 @@
       services.trilium-server = {
         enable = true;
         host = "0.0.0.0";
+        port = 3007;
       };
 
       # The old Atuin CNPG is 17.5; unstable defaults to PostgreSQL 18.
@@ -134,6 +135,7 @@
       services.atuin = {
         enable = true;
         host = "0.0.0.0";
+        port = 3012;
         # Temporary: atuin from unstable; remove after the bump.
         package = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.atuin;
       };
@@ -155,9 +157,7 @@
         webVaultPackage = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.vaultwarden.webvault;
         environmentFile = config.sops.secrets.vaultwarden-admin.path;
         config = {
-          # 8222 matches the current k8s EndpointSlice; drop this and use
-          # Vaultwarden's default 8000 after the k8s route is removed.
-          ROCKET_PORT = 8222;
+          ROCKET_PORT = 3013;
           ROCKET_ADDRESS = "0.0.0.0";
           SIGNUPS_ALLOWED = false;
         };
@@ -199,6 +199,7 @@
       services.immich = {
         enable = true;
         host = "";
+        port = 3006;
         # Temporary: Immich from unstable; remove after the bump.
         package = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.immich;
         mediaLocation = "/data/immich";
@@ -214,10 +215,10 @@
           publicUrl = "https://multica.ani.llc";
         };
         backend = {
-          port = 8082;
+          port = 3009;
           publicUrl = "https://multica.ani.llc";
         };
-        web.remoteApiUrl = "http://127.0.0.1:8082";
+        web.remoteApiUrl = "http://127.0.0.1:3009";
       };
 
       services.postgresql = {
@@ -315,10 +316,10 @@
       services.harmonia = {
         enable = true;
         signKeyPaths = [ config.sops.secrets.harmonia-sign-key.path ];
-        settings.bind = "0.0.0.0:8086";
+        settings.bind = "0.0.0.0:3010";
       };
 
-      services.nginx.defaultHTTPListenPort = 8087;
+      services.nginx.defaultHTTPListenPort = 3011;
 
       services.buildbot-nix.master = {
         enable = true;
@@ -378,7 +379,7 @@
         serviceConfig = {
           DynamicUser = true;
           StateDirectory = "substituter-api";
-          ExecStart = "${inputs.substituter-api.packages.x86_64-linux.default}/bin/substituter-api --listen 0.0.0.0:8081 --allow 127.0.0.1:3002";
+          ExecStart = "${inputs.substituter-api.packages.x86_64-linux.default}/bin/substituter-api --listen 0.0.0.0:3008 --allow 127.0.0.1:3002";
           Restart = "always";
         };
       };

@@ -47,12 +47,10 @@
 
       networking.firewall.allowedTCPPorts = [
         16801 # ssh
-        16807 16808 # mc
         16809 # cryonet bootstrap
       ];
       networking.firewall.allowedUDPPorts = [
         16804 16805 # wireguard
-        16807 16808 # factorio
       ];
 
 

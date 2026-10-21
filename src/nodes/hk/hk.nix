@@ -28,15 +28,11 @@
         };
       in {
         allowedUDPPortRanges = [ range ];
-        allowedUDPPorts      = [
-          port
-          16807 16808 # factorio
-        ];
+        allowedUDPPorts      = [ port ];
         allowedTCPPortRanges = [ range ];
         allowedTCPPorts      = [
           port
           80 443
-          445 # samba
           2222 # gitea ssh
         ];
       };
@@ -78,17 +74,17 @@
           "note.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:8080";
+            locations."/".proxyPass = "http://10.11.0.3:3007";
           };
           "atuin.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:8888";
+            locations."/".proxyPass = "http://10.11.0.3:3012";
           };
           "vw.anil.lc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:8222";
+            locations."/".proxyPass = "http://10.11.0.3:3013";
           };
           "git.ani.llc" = {
             enableACME = true;
@@ -98,7 +94,7 @@
           "immich.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:2283";
+            locations."/".proxyPass = "http://10.11.0.3:3006";
           };
           "multica.ani.llc" = {
             enableACME = true;
@@ -113,17 +109,17 @@
           "sns.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:8081";
+            locations."/".proxyPass = "http://10.11.0.3:3008";
           };
           "cache.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:8086";
+            locations."/".proxyPass = "http://10.11.0.3:3010";
           };
           "buildbot.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:8087";
+            locations."/".proxyPass = "http://10.11.0.3:3011";
           };
         };
         streamConfig = ''
