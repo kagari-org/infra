@@ -143,6 +143,7 @@
           # 8222 matches the current k8s EndpointSlice; drop this and use
           # Vaultwarden's default 8000 after the k8s route is removed.
           ROCKET_PORT = 8222;
+          ROCKET_ADDRESS = "0.0.0.0";
           SIGNUPS_ALLOWED = false;
         };
       };
