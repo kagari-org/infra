@@ -17,7 +17,7 @@
       # Temporary: 25.11's manual rejects the unstable Immich anchors; re-enable after the bump.
       documentation.nixos.enable = false;
       boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usbhid" "usb_storage" "sd_mod" ];
-      boot.kernelModules = [ "kvm-intel" ];
+      boot.kernelModules = [ "kvm-intel" "br_netfilter" ];
       boot.loader.systemd-boot.enable = true;
       boot.loader.efi.canTouchEfiVariables = true;
       boot.swraid = {
@@ -28,6 +28,10 @@
              devices=/dev/sda1,/dev/sdb1,/dev/sdc1
         '';
       };
+      # br_netfilter sends bridged packets through netfilter twice, which breaks
+      # the tproxy path for podman0 (egress and DNS both hang).
+      boot.kernel.sysctl."net.bridge.bridge-nf-call-iptables" = 0;
+      boot.kernel.sysctl."net.bridge.bridge-nf-call-ip6tables" = 0;
       fileSystems."/" = {
         device = "/dev/disk/by-uuid/f1021e42-d516-450d-8f93-34d48205c770";
         fsType = "xfs";
@@ -70,6 +74,11 @@
       };
 
       sops.secrets.multica-env = {
+        sopsFile = ./secrets.yaml;
+        mode = "0400";
+      };
+
+      sops.secrets.new-api-env = {
         sopsFile = ./secrets.yaml;
         mode = "0400";
       };
@@ -209,6 +218,48 @@
         };
         web.remoteApiUrl = "http://127.0.0.1:8082";
       };
+
+      services.postgresql = {
+        authentication = "local newapi newapi peer map=newapi";
+        identMap = "newapi root newapi";
+        ensureDatabases = [ "newapi" ];
+        ensureUsers = [{ name = "newapi"; ensureDBOwnership = true; }];
+      };
+
+      networking.nftables.tables.podman-egress = {
+        family = "inet";
+        content = ''
+          chain forward {
+            type filter hook forward priority -50; policy accept;
+            iifname "podman0" ct state established,related accept
+            iifname "podman0" ip daddr { 0.0.0.0/8, 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, 169.254.0.0/16, 172.16.0.0/12, 192.0.0.0/24, 192.0.2.0/24, 192.88.99.0/24, 192.168.0.0/16, 198.18.0.0/15, 198.51.100.0/24, 203.0.113.0/24, 224.0.0.0/4, 240.0.0.0/4 } drop
+          }
+        '';
+      };
+
+      systemd.services.podman-new-api.after = [ "postgresql.service" ];
+      virtualisation.oci-containers.containers.new-api = {
+        image = "docker.io/calciumion/new-api:v0.13.2";
+        cmd = [ "--log-dir" "/app/logs" ];
+        environment = {
+          TZ = "Asia/Shanghai";
+          ERROR_LOG_ENABLED = "true";
+          BATCH_UPDATE_ENABLED = "true";
+          NODE_NAME = "new-api-node-1";
+        };
+        environmentFiles = [ config.sops.secrets.new-api-env.path ];
+        ports = [ "3005:3000" ];
+        volumes = [
+          "/var/lib/new-api/data:/data"
+          "/var/lib/new-api/logs:/app/logs"
+          "/run/postgresql:/run/postgresql"
+        ];
+      };
+
+      systemd.tmpfiles.rules = [
+        "d /var/lib/new-api/data 0755 root root -"
+        "d /var/lib/new-api/logs 0755 root root -"
+      ];
 
       systemd.services.stable-npm = {
         wantedBy = [ "multi-user.target" ];
