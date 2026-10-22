@@ -5,18 +5,12 @@
     dns = [ "223.5.5.5" "114.114.114.114" ];
     singbox.enable = true;
 
-    modules = (modules "nixos") ++ [ ({ modulesPath, config, lib, nodes, ... }: {
+    modules = (modules "nixos") ++ [ ({ modulesPath, config, lib, nodes, pkgs, ... }: {
       # hardware
       imports = [
         (modulesPath + "/installer/scan/not-detected.nix")
-        # Temporary: Immich 3.x module from unstable; use the system module after the bump.
-        "${inputs.nixpkgs-unstable}/nixos/modules/services/web-apps/immich.nix"
         inputs.buildbot-nix.nixosModules.buildbot-master
       ];
-      # Temporary: keep 25.11's Immich module out of the way; remove after the bump.
-      disabledModules = [ "${modulesPath}/services/web-apps/immich.nix" ];
-      # Temporary: 25.11's manual rejects the unstable Immich anchors; re-enable after the bump.
-      documentation.nixos.enable = false;
       boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usbhid" "usb_storage" "sd_mod" ];
       boot.kernelModules = [ "kvm-intel" "br_netfilter" ];
       boot.loader.systemd-boot.enable = true;
@@ -74,6 +68,11 @@
         owner = "grafana";
       };
 
+      sops.secrets.grafana-secret-key = {
+        sopsFile = ./secrets.yaml;
+        owner = "grafana";
+      };
+
       sops.secrets.multica-env = {
         sopsFile = ./secrets.yaml;
         mode = "0400";
@@ -107,6 +106,7 @@
           security = {
             admin_user = "Anillc";
             admin_password = "$__file{${config.sops.secrets.grafana-admin.path}}";
+            secret_key = "$__file{${config.sops.secrets.grafana-secret-key.path}}";
           };
           analytics.reporting_enabled = false;
         };
@@ -124,26 +124,25 @@
         enable = true;
         host = "0.0.0.0";
         port = 3007;
+        # TODO: drop once patchelf stops corrupting the bundled node (the
+        # non-PIE ELF gets mis-mapped and segfaults in ld.so); nixpkgs' node is
+        # the same version trilium ships.
+        package = pkgs.trilium-server.overrideAttrs (o: {
+          postInstall = (o.postInstall or "") + ''
+            rm -rf $out/share/trilium-server/node
+            mkdir -p $out/share/trilium-server/node/bin
+            ln -s ${pkgs.nodejs_24}/bin/node $out/share/trilium-server/node/bin/node
+          '';
+        });
       };
 
-      # The old Atuin CNPG is 17.5; unstable defaults to PostgreSQL 18.
-      # pg_restore 18 restores the 17 dump forward, and the system bump keeps 18.
-      # Temporary: drop this after the bump so the system package is used.
-      services.postgresql.package =
-        inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.postgresql;
+      services.postgresql.package = pkgs.postgresql_18;
 
       services.atuin = {
         enable = true;
         host = "0.0.0.0";
         port = 3012;
-        # Temporary: atuin from unstable; remove after the bump.
-        package = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.atuin;
       };
-
-      # 25.11's module runs `atuin server start`; the newer atuin package splits
-      # the server into a separate `atuin-server` binary. Remove after the system bump.
-      systemd.services.atuin.serviceConfig.ExecStart =
-        lib.mkForce "${lib.getExe' config.services.atuin.package "atuin-server"} start";
 
       sops.secrets.vaultwarden-admin = {
         sopsFile = ./secrets.yaml;
@@ -152,9 +151,6 @@
       services.vaultwarden = {
         enable = true;
         domain = "vw.anil.lc";
-        # Temporary: vaultwarden + web vault from unstable; remove after the bump.
-        package = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.vaultwarden;
-        webVaultPackage = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.vaultwarden.webvault;
         environmentFile = config.sops.secrets.vaultwarden-admin.path;
         config = {
           ROCKET_PORT = 3013;
@@ -171,8 +167,6 @@
 
       services.forgejo = {
         enable = true;
-        # Temporary: Forgejo LTS from unstable; remove after the bump.
-        package = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.forgejo-lts;
         lfs.enable = true;
         settings = {
           server = {
@@ -200,8 +194,6 @@
         enable = true;
         host = "";
         port = 3006;
-        # Temporary: Immich from unstable; remove after the bump.
-        package = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.immich;
         mediaLocation = "/data/immich";
         machine-learning.enable = true;
       };
@@ -268,9 +260,7 @@
       containers.agents = {
         autoStart = true;
         bindMounts."/run/secrets" = {};
-        config = { pkgs, ... }: let
-          unstable = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
-        in {
+        config = { pkgs, ... }: {
           system.stateVersion = "25.11";
           networking.hostName = "agents";
           nix = {
@@ -282,7 +272,7 @@
             settings.experimental-features = [ "nix-command" "flakes" ];
           };
           environment.systemPackages = [
-            unstable.multica-cli
+            pkgs.multica-cli
             pkgs.git
             pkgs.gh
             pkgs.jq
@@ -293,7 +283,7 @@
             wantedBy = [ "multi-user.target" ];
             wants = [ "network-online.target" ];
             after = [ "network-online.target" ];
-            path = [ unstable.multica-cli pkgs.git pkgs.gh ];
+            path = [ pkgs.multica-cli pkgs.git pkgs.gh ];
             serviceConfig.Restart = "always";
             script = ''
               export HOME=/root
@@ -313,13 +303,22 @@
       sops.secrets.buildbot-worker-password.sopsFile = ./secrets.yaml;
       sops.secrets.buildbot-workers.sopsFile = ./secrets.yaml;
 
-      services.harmonia = {
+      services.harmonia.cache = {
         enable = true;
         signKeyPaths = [ config.sops.secrets.harmonia-sign-key.path ];
         settings.bind = "0.0.0.0:3010";
       };
 
       services.nginx.defaultHTTPListenPort = 3011;
+
+      # TODO: remove once upstream passes makeWrapperArgs as separate arguments.
+      # buildbot-nix ships "--prefix PATH : ..." as one list element, which
+      # structured attrs no longer word-split.
+      services.buildbot-nix.packages.buildbot-effects =
+        (pkgs.python3.pkgs.callPackage "${inputs.buildbot-nix.outPath}/packages/buildbot-effects.nix" { })
+        .overrideAttrs (_: {
+          makeWrapperArgs = [ "--prefix" "PATH" ":" (lib.makeBinPath [ pkgs.bubblewrap ]) ];
+        });
 
       services.buildbot-nix.master = {
         enable = true;
@@ -342,7 +341,7 @@
       containers.builder = {
         autoStart = true;
         bindMounts."/run/secrets" = {};
-        config = { pkgs, ... }: {
+        config = { pkgs, lib, ... }: {
           imports = [ inputs.buildbot-nix.nixosModules.buildbot-worker ];
           system.stateVersion = "25.11";
           networking.hostName = "builder";
@@ -354,10 +353,20 @@
             };
             settings.experimental-features = [ "nix-command" "flakes" ];
           };
-          services.buildbot-nix.worker = {
-            enable = true;
-            name = "forge";
-            workerPasswordFile = config.sops.secrets.buildbot-worker-password.path;
+          services.buildbot-nix = {
+            # TODO: remove once upstream passes makeWrapperArgs as separate arguments.
+            # buildbot-nix ships "--prefix PATH : ..." as one list element, which
+            # structured attrs no longer word-split.
+            packages.buildbot-effects =
+              (pkgs.python3.pkgs.callPackage "${inputs.buildbot-nix.outPath}/packages/buildbot-effects.nix" { })
+              .overrideAttrs (_: {
+                makeWrapperArgs = [ "--prefix" "PATH" ":" (lib.makeBinPath [ pkgs.bubblewrap ]) ];
+              });
+            worker = {
+              enable = true;
+              name = "forge";
+              workerPasswordFile = config.sops.secrets.buildbot-worker-password.path;
+            };
           };
         };
       };

@@ -143,24 +143,34 @@
         # cat ~/sub.json | sops encrypt --input-type binary --filename-override src/modules/singbox/secrets.yaml > src/modules/singbox/secrets.yaml
         # then rename data to singbox-sub
         sops.secrets.singbox-sub.sopsFile = ./secrets.yaml;
-        services.sing-box.enable = true;
-        systemd.services.sing-box = {
-          path = with pkgs; [ jq ];
-          serviceConfig.LoadCredential = "sub:${config.sops.secrets.singbox-sub.path}";
-          serviceConfig.ExecStartPre = lib.mkForce "${pkgs.writeScript "generate-config" ''
-            #!${pkgs.runtimeShell}
-            export OUTBOUNDS=$(mktemp)
-            jq -r '[.outbounds[] | select(.type | contains("vmess", "shadowsocks", "hysteria2", "vless", "trojan"))]' \
-              $CREDENTIALS_DIRECTORY/sub > $OUTBOUNDS
-            export SELECT=$(mktemp)
-            jq -r '[[.[].tag] | {tag: "s_select", type: "selector", outbounds: .}]' $OUTBOUNDS > $SELECT
-            export URLTEST=$(mktemp)
-            jq -r '[[.[].tag] | {tag: "s_auto", type: "urltest", outbounds: .}]' $OUTBOUNDS > $URLTEST
 
-            cat ${singbox-config} $SELECT $URLTEST $OUTBOUNDS | jq -s -r '
-              .[0].outbounds += .[1] + .[2] + .[3] | .[0]
-            ' > /run/sing-box/config.json
-          ''}";
+        systemd.services.sing-box = {
+          wantedBy = [ "multi-user.target" ];
+          after = [ "network-online.target" ];
+          wants = [ "network-online.target" ];
+          path = [ pkgs.jq ];
+          serviceConfig = {
+            Restart = "on-failure";
+            RestartSec = "10s";
+            LimitNOFILE = "infinity";
+            StateDirectory = "sing-box";
+            RuntimeDirectory = "sing-box";
+            ExecStartPre = "${pkgs.writeScript "generate-config" ''
+              #!${pkgs.runtimeShell}
+              export OUTBOUNDS=$(mktemp)
+              jq -r '[.outbounds[] | select(.type | contains("vmess", "shadowsocks", "hysteria2", "vless", "trojan"))]' \
+                ${config.sops.secrets.singbox-sub.path} > $OUTBOUNDS
+              export SELECT=$(mktemp)
+              jq -r '[[.[].tag] | {tag: "s_select", type: "selector", outbounds: .}]' $OUTBOUNDS > $SELECT
+              export URLTEST=$(mktemp)
+              jq -r '[[.[].tag] | {tag: "s_auto", type: "urltest", outbounds: .}]' $OUTBOUNDS > $URLTEST
+
+              cat ${singbox-config} $SELECT $URLTEST $OUTBOUNDS | jq -s -r '
+                .[0].outbounds += .[1] + .[2] + .[3] | .[0]
+              ' > $RUNTIME_DIRECTORY/config.json
+            ''}";
+            ExecStart = "${lib.getExe pkgs.sing-box} -D \${STATE_DIRECTORY} -C \${RUNTIME_DIRECTORY} run";
+          };
         };
       };
     };

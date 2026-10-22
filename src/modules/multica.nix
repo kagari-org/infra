@@ -2,7 +2,7 @@
   infra.modules = [ {
     type = "nixos";
     module = { config, pkgs, lib, ... }: let
-      version = "0.6.4";
+      version = "0.6.5";
 
       multica-server = pkgs.buildGo126Module rec {
         pname = "multica-server";
@@ -12,17 +12,11 @@
           owner = "multica-ai";
           repo = "multica";
           rev = "v${version}";
-          hash = "sha256-R4Rp+hFZPW+pn/x2AtMnUmNaDkAvxfRGUItYGIT829k=";
+          hash = "sha256-qM5uSgiL7I2omE7o7+iafoMiwCtu7MNxYTmiCD8RReU=";
         };
 
         modRoot = "server";
         vendorHash = "sha256-KJIrY4kLAQ5CBu/ClcXjLHG0FWvSX1ne06OG+ZkL75E=";
-
-        # Temporary: nixpkgs 25.11 ships Go 1.26.3 while upstream go.mod requires
-        # 1.26.9; GOTOOLCHAIN=local cannot download it. Remove after the bump.
-        postPatch = ''
-          sed -i -E 's/^go 1\.26\.[0-9]+$/go 1.26.0/' server/go.mod
-        '';
 
         subPackages = [
           "cmd/server"
@@ -49,7 +43,7 @@
           fetchFromGitHub,
           fetchPnpmDeps,
           makeWrapper,
-          nodejs_22,
+          nodejs_24,
           pnpm_10,
           pnpmConfigHook,
           remoteApiUrl ? "http://127.0.0.1:8080",
@@ -64,7 +58,7 @@
             owner = "multica-ai";
             repo = "multica";
             rev = "v${finalAttrs.version}";
-            hash = "sha256-R4Rp+hFZPW+pn/x2AtMnUmNaDkAvxfRGUItYGIT829k=";
+            hash = "sha256-qM5uSgiL7I2omE7o7+iafoMiwCtu7MNxYTmiCD8RReU=";
           };
 
           pnpmDeps = fetchPnpmDeps {
@@ -75,7 +69,7 @@
             hash = "sha256-S++seOVNAlXeOzrbYhxUCr8kCas67WWNWZ6U6BDhbtk=";
           };
 
-          nativeBuildInputs = [ makeWrapper nodejs_22 pnpm_10 pnpmConfigHook ];
+          nativeBuildInputs = [ makeWrapper nodejs_24 pnpm_10 pnpmConfigHook ];
 
           # next/font/google fetches fonts during build; strip them for offline builds.
           postPatch = ''
@@ -143,7 +137,7 @@
             install -d "$out/share/multica-web/apps/web/.next"
             cp -R apps/web/.next/static "$out/share/multica-web/apps/web/.next/static"
             cp -R apps/web/public "$out/share/multica-web/apps/web/public"
-            makeWrapper ${lib.getExe nodejs_22} "$out/bin/multica-web" \
+            makeWrapper ${lib.getExe nodejs_24} "$out/bin/multica-web" \
               --chdir "$out/share/multica-web" \
               --set-default NODE_ENV production \
               --set-default HOSTNAME 127.0.0.1 \
