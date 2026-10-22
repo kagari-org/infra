@@ -66,57 +66,90 @@
           "dash.kagari.org" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:3000";
+            locations."/" = {
+              proxyPass = "http://10.11.0.3:3000";
+              proxyWebsockets = true;
+            };
           };
           "note.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:3007";
+            locations."/" = {
+              proxyPass = "http://10.11.0.3:3007";
+              proxyWebsockets = true;
+            };
           };
           "atuin.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:3012";
+            locations."/" = {
+              proxyPass = "http://10.11.0.3:3012";
+              proxyWebsockets = true;
+            };
           };
           "vw.anil.lc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:3013";
+            locations."/" = {
+              proxyPass = "http://10.11.0.3:3013";
+              proxyWebsockets = true;
+            };
           };
           "git.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:3001";
+            locations."/" = {
+              proxyPass = "http://10.11.0.3:3001";
+              proxyWebsockets = true;
+            };
           };
           "immich.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:3006";
+            locations."/" = {
+              proxyPass = "http://10.11.0.3:3006";
+              proxyWebsockets = true;
+            };
           };
           "multica.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:3004";
+            locations."/" = {
+              proxyPass = "http://10.11.0.3:3004";
+              proxyWebsockets = true;
+            };
           };
           "llm.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:3005";
+            locations."/" = {
+              proxyPass = "http://10.11.0.3:3005";
+              proxyWebsockets = true;
+            };
           };
           "sns.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:3008";
+            locations."/" = {
+              proxyPass = "http://10.11.0.3:3008";
+              proxyWebsockets = true;
+            };
           };
           "cache.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:3010";
+            locations."/" = {
+              proxyPass = "http://10.11.0.3:3010";
+              proxyWebsockets = true;
+            };
           };
           "buildbot.ani.llc" = {
             enableACME = true;
             forceSSL = true;
-            locations."/".proxyPass = "http://10.11.0.3:3011";
+            locations."/" = {
+              proxyPass = "http://10.11.0.3:3011";
+              proxyWebsockets = true;
+            };
           };
         };
         streamConfig = ''
