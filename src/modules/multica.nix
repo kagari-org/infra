@@ -37,6 +37,28 @@
         '';
       };
 
+      multica-cli = pkgs.buildGo126Module {
+        pname = "multica-cli";
+        inherit version;
+
+        src = multica-server.src;
+
+        modRoot = "server";
+        vendorHash = "sha256-KJIrY4kLAQ5CBu/ClcXjLHG0FWvSX1ne06OG+ZkL75E=";
+
+        subPackages = [ "cmd/multica" ];
+
+        env.CGO_ENABLED = 0;
+
+        ldflags = [
+          "-s"
+          "-w"
+          "-X main.version=${version}"
+          "-X main.commit=nixpkg"
+          "-X main.date=1970-01-01T00:00:00Z"
+        ];
+      };
+
       multica-web = pkgs.callPackage (
         {
           stdenv,
@@ -199,6 +221,10 @@
           web = lib.mkOption {
             type = lib.types.package;
             default = multica-web;
+          };
+          cli = lib.mkOption {
+            type = lib.types.package;
+            default = multica-cli;
           };
         };
 
