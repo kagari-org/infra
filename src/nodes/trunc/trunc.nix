@@ -63,6 +63,11 @@
             matchConfig.Name = "enp3s0";
             address = [ "192.168.1.1/24" ];
           };
+          systemd.network.networks."40-eth0".routes = [{
+            Destination = "0.0.0.0/0";
+            Gateway = "10.192.0.1";
+            GatewayOnLink = true;
+          }];
           services.dnsmasq = {
             enable = true;
             resolveLocalQueries = false;
