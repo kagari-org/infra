@@ -8,6 +8,7 @@
   inputs.stable-npm.url = "github:Anillc/stable-npm";
   inputs.substituter-api.url = "github:Anillc/substituter-api";
   inputs.buildbot-nix.url = "github:nix-community/buildbot-nix";
+  inputs.sing-portal.url = "git+https://github.com/kagari-org/sing-portal";
 
   outputs = inputs@{
     self, nixpkgs, flake-parts, import-tree, ...

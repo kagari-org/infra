@@ -1,8 +1,10 @@
-{
+{ config, withSystem, ... }: let
+  inherit (config) infra;
+in {
   infra.modules = [ {
     type = "nixos";
-    module = { config, pkgs, lib, node, ... }: let
-      singbox-config = pkgs.writeText "config.json" (lib.generators.toJSON {} {
+    module = withSystem "x86_64-linux" ({ inputs', ... }: { config, pkgs, lib, node, name, ... }: let
+      template = pkgs.writeText "sing-box-template.json" (lib.generators.toJSON {} {
         route.rule_set = [
           {
             type = "local";
@@ -17,7 +19,17 @@
             path = "${pkgs.sing-geosite}/share/sing-box/rule-set/geosite-geolocation-cn.srs";
           }
         ];
-        experimental.clash_api.external_controller = "0.0.0.0:9090";
+
+        experimental.clash_api.external_controller = "127.0.0.1:9090";
+
+        services = [
+          {
+            type = "api";
+            tag = "s_api";
+            listen = "127.0.0.1";
+            listen_port = 9091;
+          }
+        ];
 
         dns = {
           servers = [
@@ -44,16 +56,6 @@
             tag = "s_mmixed-in";
             listen_port = 7897;
           }
-        ];
-
-        outbounds = [
-          {
-            type = "selector";
-            tag = "s_out";
-            outbounds = [ "s_auto" "s_select" "s_direct" ];
-            default = "s_auto";
-          }
-          { type = "direct"; tag = "s_direct"; }
         ];
 
         route = {
@@ -116,15 +118,6 @@
           chain singbox-prerouting {
             type filter hook prerouting priority mangle + 100; policy accept;
             ip daddr $RESERVED_IP return
-            # bypass allowed ports for forwarding packets
-            ${lib.optionalString (lib.length config.networking.firewall.allowedTCPPorts != 0) ''
-              iifname "lxc*" tcp sport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedTCPPorts)} } return
-              oifname "lxc*" tcp dport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedTCPPorts)} } return
-            ''}
-            ${lib.optionalString (lib.length config.networking.firewall.allowedUDPPorts != 0) ''
-              iifname "lxc*" udp sport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedUDPPorts)} } return
-              oifname "lxc*" udp dport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedUDPPorts)} } return
-            ''}
             ip protocol { tcp, udp } meta mark set ${toString node.singbox.mark} tproxy ip to 127.0.0.1:9898
           }
         '';
@@ -140,39 +133,34 @@
           } ];
         };
 
-        # cat ~/sub.json | sops encrypt --input-type binary --filename-override src/modules/singbox/secrets.yaml > src/modules/singbox/secrets.yaml
-        # then rename data to singbox-sub
-        sops.secrets.singbox-sub.sopsFile = ./secrets.yaml;
-
-        systemd.services.sing-box = {
+        services.sing-box.enable = true;
+        systemd.services.sing-portal-agent = {
           wantedBy = [ "multi-user.target" ];
           after = [ "network-online.target" ];
+          before = [ "sing-box.service" ];
           wants = [ "network-online.target" ];
-          path = [ pkgs.jq ];
+          path = [
+            inputs'.sing-portal.packages.default
+            config.systemd.package
+          ];
+          script = ''
+            exec sing-portal agent \
+              --portal ${lib.escapeShellArg "ws://${infra.nodes.home.igp-v4}:3015"} \
+              --name ${lib.escapeShellArg name} \
+              --template ${template} \
+              --config /etc/sing-box/config.json \
+              --state-dir /var/lib/sing-portal-agent \
+              --api-url http://127.0.0.1:9091 \
+              --restart-cmd ${lib.escapeShellArg "systemctl restart sing-box"} \
+              --interval 15s
+          '';
           serviceConfig = {
-            Restart = "on-failure";
+            StateDirectory = "sing-portal-agent";
+            Restart = "always";
             RestartSec = "10s";
-            LimitNOFILE = "infinity";
-            StateDirectory = "sing-box";
-            RuntimeDirectory = "sing-box";
-            ExecStartPre = "${pkgs.writeScript "generate-config" ''
-              #!${pkgs.runtimeShell}
-              export OUTBOUNDS=$(mktemp)
-              jq -r '[.outbounds[] | select(.type | contains("vmess", "shadowsocks", "hysteria2", "vless", "trojan"))]' \
-                ${config.sops.secrets.singbox-sub.path} > $OUTBOUNDS
-              export SELECT=$(mktemp)
-              jq -r '[[.[].tag] | {tag: "s_select", type: "selector", outbounds: .}]' $OUTBOUNDS > $SELECT
-              export URLTEST=$(mktemp)
-              jq -r '[[.[].tag] | {tag: "s_auto", type: "urltest", outbounds: .}]' $OUTBOUNDS > $URLTEST
-
-              cat ${singbox-config} $SELECT $URLTEST $OUTBOUNDS | jq -s -r '
-                .[0].outbounds += .[1] + .[2] + .[3] | .[0]
-              ' > $RUNTIME_DIRECTORY/config.json
-            ''}";
-            ExecStart = "${lib.getExe pkgs.sing-box} -D \${STATE_DIRECTORY} -C \${RUNTIME_DIRECTORY} run";
           };
         };
       };
-    };
+    });
   } ];
 }
