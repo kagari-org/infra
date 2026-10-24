@@ -33,16 +33,55 @@ in {
 
         dns = {
           servers = [
-            { tag = "s_cf"; type = "https"; server = "1.0.0.1"; detour = "s_out"; }
             { tag = "s_local"; type = "udp"; server = "223.5.5.5"; }
+            {
+              tag = "s_cf";
+              type = "https";
+              server = "1.0.0.1";
+              tls.server_name = "cloudflare-dns.com";
+              detour = "s_out";
+            }
+            {
+              tag = "s_cf2";
+              type = "https";
+              server = "1.1.1.1";
+              tls.server_name = "cloudflare-dns.com";
+              detour = "s_out";
+            }
+            {
+              tag = "s_google";
+              type = "https";
+              server = "8.8.8.8";
+              tls.server_name = "dns.google";
+              detour = "s_out";
+            }
+            {
+              tag = "s_quad9";
+              type = "https";
+              server = "9.9.9.9";
+              tls.server_name = "dns.quad9.net";
+              detour = "s_out";
+            }
           ];
           rules = [
-            { rule_set = "s_geosite-cn"; server = "s_local"; }
+            { rule_set = "s_geosite-cn"; action = "route"; server = "s_local"; }
 
-            { domain_suffix = "kagari.org"; server = "s_local"; }
+            { domain_suffix = "kagari.org"; action = "route"; server = "s_local"; }
+
+            # race
+            { query_type = [ "A" "AAAA" ]; action = "evaluate"; server = "s_cf"; tag = "r_cf"; }
+            { query_type = [ "A" "AAAA" ]; action = "evaluate"; server = "s_cf2"; tag = "r_cf2"; }
+            { query_type = [ "A" "AAAA" ]; action = "evaluate"; server = "s_google"; tag = "r_google"; }
+            { query_type = [ "A" "AAAA" ]; action = "evaluate"; server = "s_quad9"; tag = "r_quad9"; }
+
+            { match_response = "r_cf"; ip_accept_any = true; action = "respond"; race = true; }
+            { match_response = "r_cf2"; ip_accept_any = true; action = "respond"; race = true; }
+            { match_response = "r_google"; ip_accept_any = true; action = "respond"; race = true; }
+            { match_response = "r_quad9"; ip_accept_any = true; action = "respond"; race = true; }
+
+            { action = "route"; server = "s_cf"; }
           ];
           final = "s_cf";
-          client_subnet = "114.114.114.114/24";
         };
 
         inbounds = [

@@ -411,17 +411,17 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1792783850,
-        "narHash": "sha256-f+X+2hTq85Q54zwJ2IwVMZ1hFGtK1OI49nuw8GwSc4o=",
-        "ref": "refs/heads/master",
-        "rev": "46dfc249bb1bf46561838b176c9d6ad867c79608",
-        "revCount": 34,
-        "type": "git",
-        "url": "https://github.com/kagari-org/sing-portal"
+        "lastModified": 1792869098,
+        "narHash": "sha256-CIDzpqLrxsTdkPd7wecxDBk0oFpXp8v6YLx7Vw66fnY=",
+        "owner": "kagari-org",
+        "repo": "sing-portal",
+        "rev": "66741181c8443702f043339fbabde49e0e23fcce",
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "https://github.com/kagari-org/sing-portal"
+        "owner": "kagari-org",
+        "repo": "sing-portal",
+        "type": "github"
       }
     },
     "sops-nix": {
