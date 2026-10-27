@@ -151,6 +151,19 @@
               proxyWebsockets = true;
             };
           };
+          "kankaiz.com" = {
+            enableACME = true;
+            forceSSL = true;
+            locations."/" = {
+              proxyPass = "http://10.11.0.3:8083";
+              proxyWebsockets = true;
+            };
+          };
+          "www.kankaiz.com" = {
+            enableACME = true;
+            forceSSL = true;
+            globalRedirect = "kankaiz.com";
+          };
         };
         streamConfig = ''
           server {
