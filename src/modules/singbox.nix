@@ -22,6 +22,11 @@ in {
 
         experimental.clash_api.external_controller = "127.0.0.1:9090";
 
+        outbound_defaults = {
+          tcp_keep_alive = "1m";
+          tcp_keep_alive_interval = "30s";
+        };
+
         services = [
           {
             type = "api";

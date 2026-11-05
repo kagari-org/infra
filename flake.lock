@@ -411,11 +411,11 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1793881408,
-        "narHash": "sha256-YZg8vBZl7vaqOQPa9YVvfhTl/J5xZW8dCDTd7KyWxMw=",
+        "lastModified": 1793883918,
+        "narHash": "sha256-JCrEzg6FfYlr9EsoS5Gag39qCyoB6spHZnWqXUsk+g8=",
         "owner": "kagari-org",
         "repo": "sing-portal",
-        "rev": "48cbae2b52fa69a70ad8fbb2bc4f567ad0b9ffd5",
+        "rev": "941ecca7b15b6b5ca0445a00fe57fbfe5e88853b",
         "type": "github"
       },
       "original": {
