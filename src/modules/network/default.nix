@@ -3,13 +3,22 @@
 in {
   infra.modules = [ {
     type = "nixos";
-    module = withSystem "x86_64-linux" ({ inputs', ... }: { config, pkgs, lib, node, ... }: {
+    module = withSystem "x86_64-linux" ({ inputs', ... }: { config, pkgs, lib, node, name, ... }: {
       networking.useNetworkd = true;
       networking.resolvconf.enable = false;
-      services.resolved.enable = false;
-      environment.etc."resolv.conf".text = node.dns
-        |> lib.map (d: "nameserver ${d}")
-        |> lib.concatStringsSep "\n";
+      networking.nameservers = node.dns;
+      services.resolved.enable = true;
+
+      systemd.network.networks."99-ethernet-default-dhcp" = lib.mkIf config.networking.useDHCP {
+        dhcpV4Config.UseDNS = false;
+        dhcpV6Config.UseDNS = false;
+        ipv6AcceptRAConfig.UseDNS = false;
+      };
+      systemd.network.networks."99-wireless-client-dhcp" = lib.mkIf config.networking.useDHCP {
+        dhcpV4Config.UseDNS = false;
+        dhcpV6Config.UseDNS = false;
+        ipv6AcceptRAConfig.UseDNS = false;
+      };
 
       networking.nftables.enable = true;
       networking.nftables.checkRuleset = false;
@@ -47,6 +56,19 @@ in {
         matchConfig.Name = "cn0";
         address = [ "${node.igp-v4}/24" ];
       };
+
+      services.namae.records = [
+        {
+          inherit name;
+          type = "A";
+          from-interface = "cn0";
+        }
+        {
+          inherit name;
+          type = "AAAA";
+          from-interface = "cn0";
+        }
+      ];
 
       sops.secrets.cryonet-env.sopsFile = ./secrets.yaml;
       systemd.slices.cryonet.wantedBy = [ "nftables.service" ];

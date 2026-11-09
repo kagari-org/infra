@@ -22,6 +22,8 @@
       systemd.network.networks.enp1s0 = {
         matchConfig.Name = "enp1s0";
         DHCP = "ipv4";
+        dhcpV4Config.UseDNS = false;
+        ipv6AcceptRAConfig.UseDNS = false;
       };
 
       # config
