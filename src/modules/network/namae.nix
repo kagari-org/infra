@@ -63,6 +63,7 @@
         }) config.services.namae.records) // {
           "namae.toml".source = (pkgs.formats.toml {}).generate "namae.toml" {
             zone = "kn.";
+            dns_listen = [ "0.0.0.0:15353" ];
             secret_file = config.sops.secrets.namae-secret.path;
             id = node.id;
           };

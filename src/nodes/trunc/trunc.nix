@@ -32,6 +32,7 @@
         owner = "systemd-network";
         group = "systemd-network";
       };
+      networking.firewall.trustedInterfaces = [ "ve-access" ];
       networking.nftables.tables.nixos-fw.content = lib.mkAfter ''
         chain access-masquerade {
           type nat hook postrouting priority srcnat; policy accept;
@@ -75,8 +76,12 @@
             resolveLocalQueries = false;
             settings = {
               interface = "enp3s0";
-              server = [ "223.5.5.5" ];
               dhcp-range = "192.168.1.2,192.168.1.254,24h";
+              dhcp-option = [ "option:domain-search,kn" ];
+              server = [
+                "/kn/10.192.0.1#15353"
+                "223.5.5.5"
+              ];
 
               enable-tftp = true;
               tftp-root = "${pkgs.ipxe}";
