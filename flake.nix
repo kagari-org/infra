@@ -9,6 +9,7 @@
   inputs.substituter-api.url = "github:Anillc/substituter-api";
   inputs.buildbot-nix.url = "github:nix-community/buildbot-nix";
   inputs.sing-portal.url = "github:kagari-org/sing-portal";
+  inputs.proxmox-nixos.url = "github:SaumonNet/proxmox-nixos";
 
   outputs = inputs@{
     self, nixpkgs, flake-parts, import-tree, ...
