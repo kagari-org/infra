@@ -46,6 +46,7 @@
           imports = [ inputs.buildbot-nix.nixosModules.buildbot-worker ];
           system.stateVersion = "25.11";
           networking.hostName = "builder";
+          networking.resolvconf.enable = false;
           nix = {
             nixPath = [ "nixpkgs=${pkgs.path}" ];
             registry.p.to = {

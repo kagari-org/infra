@@ -19,6 +19,8 @@ in {
         dhcpV6Config.UseDNS = false;
         ipv6AcceptRAConfig.UseDNS = false;
       };
+      # https://github.com/NixOS/nixpkgs/issues/69414
+      systemd.network.networks."80-container-ve".enable = false;
 
       networking.nftables.enable = true;
       networking.nftables.checkRuleset = false;

@@ -10,6 +10,7 @@
       config = { pkgs, ... }: {
         system.stateVersion = "25.11";
         networking.hostName = "agents";
+        networking.resolvconf.enable = false;
         nix = {
           nixPath = [ "nixpkgs=${pkgs.path}" ];
           registry.p.to = {

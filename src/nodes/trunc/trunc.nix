@@ -32,6 +32,7 @@
         owner = "systemd-network";
         group = "systemd-network";
       };
+      services.resolved.settings.Resolve.DNSStubListenerExtra = [ "10.192.0.1" ];
       networking.firewall.trustedInterfaces = [ "ve-access" ];
       networking.nftables.tables.nixos-fw.content = lib.mkAfter ''
         chain access-masquerade {
@@ -50,6 +51,11 @@
           networking.useNetworkd = true;
           networking.nftables.enable = true;
           services.resolved.enable = false;
+          networking.resolvconf.enable = false;
+          environment.etc."resolv.conf".text = ''
+            nameserver 10.192.0.1
+            search kn
+          '';
           networking.firewall = {
             checkReversePath = false;
             trustedInterfaces = [ "enp3s0" ];

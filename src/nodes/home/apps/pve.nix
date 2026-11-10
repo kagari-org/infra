@@ -42,9 +42,17 @@
           chain input {
             type filter hook input priority -50; policy accept;
             iifname "ve-pve" meta mark ${toString node.singbox.mark} accept
+            iifname "ve-pve" ip daddr 10.193.0.1 udp dport 53 accept
+            iifname "ve-pve" ip daddr 10.193.0.1 tcp dport 53 accept
             iifname "ve-pve" drop
           }
         '';
+      };
+
+      services.resolved.settings.Resolve.DNSStubListenerExtra = [ "10.193.0.1" ];
+      networking.firewall.interfaces."ve-pve" = {
+        allowedUDPPorts = [ 53 ];
+        allowedTCPPorts = [ 53 ];
       };
 
       containers.pve = {
@@ -82,6 +90,11 @@
           users.mutableUsers = false;
           users.users.root.hashedPassword = config.users.users.root.hashedPassword;
           services.resolved.enable = lib.mkForce false;
+          networking.resolvconf.enable = false;
+          environment.etc."resolv.conf".text = ''
+            nameserver 10.193.0.1
+            search kn
+          '';
           networking.useNetworkd = true;
           networking.nftables.enable = true;
           networking.firewall.allowedTCPPorts = [ 8006 ];
