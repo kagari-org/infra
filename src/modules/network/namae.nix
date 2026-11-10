@@ -48,25 +48,19 @@
           reloadUnits = [ "namae.service" ];
         };
 
-        environment.etc = lib.listToAttrs (lib.imap0 (i: record: {
-          name = "namae.d/${toString i}-${lib.replaceStrings [ "*" "/" ] [ "_" "_" ] record.name}-${record.type}.toml";
-          value.source = (pkgs.formats.toml {}).generate "namae-record.toml" {
-            records = [ (
-              { inherit (record) name type; }
-              // lib.optionalAttrs (record.value != null) { value = record.value; }
-              // lib.optionalAttrs (record.from-interface != null) { from_interface = record.from-interface; }
-              // lib.optionalAttrs (record.ttl != null) { ttl = record.ttl; }
-              // lib.optionalAttrs (record.priority != 100) { priority = record.priority; }
-              // lib.optionalAttrs (!record.publish) { publish = record.publish; }
-            ) ];
-          };
-        }) config.services.namae.records) // {
-          "namae.toml".source = (pkgs.formats.toml {}).generate "namae.toml" {
-            zone = "kn.";
-            dns_listen = [ "0.0.0.0:15353" ];
-            secret_file = config.sops.secrets.namae-secret.path;
-            id = node.id;
-          };
+        environment.etc."namae.toml".source = (pkgs.formats.toml {}).generate "namae.toml" {
+          zone = "kn.";
+          dns_listen = [ "0.0.0.0:15353" ];
+          secret_file = config.sops.secrets.namae-secret.path;
+          id = node.id;
+          records = map (record: (
+            { inherit (record) name type; }
+            // lib.optionalAttrs (record.value != null) { value = record.value; }
+            // lib.optionalAttrs (record.from-interface != null) { from_interface = record.from-interface; }
+            // lib.optionalAttrs (record.ttl != null) { ttl = record.ttl; }
+            // lib.optionalAttrs (record.priority != 100) { priority = record.priority; }
+            // lib.optionalAttrs (!record.publish) { publish = record.publish; }
+          )) config.services.namae.records;
         };
 
         environment.systemPackages = [ inputs'.namae.packages.default ];
@@ -80,10 +74,7 @@
           wantedBy = [ "multi-user.target" ];
           after = [ "network.target" "bird.service" "sops-install-secrets.service" ];
           wants = [ "sops-install-secrets.service" ];
-          reloadTriggers = config.environment.etc
-            |> lib.filterAttrs (name: _: lib.hasPrefix "namae" name)
-            |> lib.attrValues
-            |> lib.map (entry: entry.source);
+          reloadTriggers = [ config.environment.etc."namae.toml".source ];
           serviceConfig = {
             ExecReload = "${inputs'.namae.packages.default}/bin/namae ctl reload";
             Restart = "on-failure";
@@ -92,7 +83,7 @@
           script = ''
             exec ${inputs'.namae.packages.default}/bin/namae daemon \
               --config /etc/namae.toml \
-              --config-dir /etc/namae.d
+              --config-dir /run/namae.d
           '';
         };
       };

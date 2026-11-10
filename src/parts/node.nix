@@ -34,6 +34,16 @@ in {
         description = "igp v4";
         default = "10.11.0.${toString config.id}";
       };
+      options.ula-prefix = lib.mkOption {
+        type = str;
+        description = "cluster ULA prefix, e.g. fd11::";
+        default = "fd11::";
+      };
+      options.igp-v6 = lib.mkOption {
+        type = str;
+        description = "igp v6";
+        default = "${config.ula-prefix}${toString config.id}";
+      };
       options.singbox = {
         enable = lib.mkOption {
           type = bool;

@@ -26,11 +26,16 @@ in {
       networking.nftables.checkRuleset = false;
       networking.firewall.checkReversePath = false;
       networking.firewall.trustedInterfaces = [ "cn0" ];
+      networking.firewall.extraForwardRules = ''
+        iifname { "ve-*", "svc-*" } accept
+        iifname "cn0" oifname { "ve-*", "svc-*" } accept
+      '';
       networking.getaddrinfo.precedence."::ffff:0:0/96" = 100;
 
       boot.kernel.sysctl = {
         "net.ipv4.ip_forward" = 1;
         "net.ipv4.conf.all.rp_filter" = 0;
+        "net.ipv6.conf.all.forwarding" = 1;
         "net.core.default_qdisc" = "fq";
         "net.ipv4.tcp_congestion_control" = "bbr";
       };
@@ -56,7 +61,7 @@ in {
 
       systemd.network.networks.cryonet = {
         matchConfig.Name = "cn0";
-        address = [ "${node.igp-v4}/24" ];
+        address = [ "${node.igp-v4}/24" "${node.igp-v6}/128" ];
       };
 
       services.namae.records = [
@@ -129,22 +134,47 @@ in {
 
       services.bird = {
         enable = true;
+        checkConfig = false;
         config = ''
           router id ${node.igp-v4};
           ipv4 table igp_v4;
+          ipv6 table igp_v6;
           protocol device {}
-          protocol kernel {
+          protocol kernel kernel4 {
               learn;
               ipv4 {
                   import all;
                   export all;
               };
           }
-          protocol pipe {
+          protocol kernel kernel6 {
+              ipv6 {
+                  import all;
+                  export all;
+              };
+          }
+          protocol pipe pipe4 {
               table igp_v4;
               peer table master4;
               import none;
               export all;
+          }
+          protocol pipe pipe6 {
+              table igp_v6;
+              peer table master6;
+              import none;
+              export all;
+          }
+
+          protocol direct {
+            interface "cn0";
+            ipv6 {
+              table igp_v6;
+              import filter {
+                if net ~ [ ${node.ula-prefix}/64+ ] then accept;
+                reject;
+              };
+            };
           }
 
           protocol babel {
@@ -163,7 +193,12 @@ in {
                 krt_prefsrc = ${node.igp-v4};
                 accept;
               };
-              export where (source = RTS_STATIC) || (source = RTS_BABEL);
+              export all;
+            };
+            ipv6 {
+              table igp_v6;
+              import all;
+              export all;
             };
           }
 
@@ -171,6 +206,8 @@ in {
             route ${node.igp-v4}/32 via "lo";
             ipv4 { table igp_v4; };
           }
+
+          include "/run/bird-services.d/*.conf";
         '';
       };
     });
