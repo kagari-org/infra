@@ -45,6 +45,8 @@
         privateNetwork = true;
         localAddress = "10.192.0.2";
         hostAddress = "10.192.0.1";
+        localAddress6 = "fd00:1::2";
+        hostAddress6 = "fd00:1::1";
         interfaces = [ "enp3s0" ];
         config = {
           system.stateVersion = "25.05";
@@ -62,6 +64,7 @@
           };
           networking.nat = {
             enable = true;
+            enableIPv6 = true;
             internalInterfaces = [ "enp3s0" ];
           };
           boot.kernel.sysctl = {
@@ -70,20 +73,31 @@
           };
           systemd.network.networks.enp3s0 = {
             matchConfig.Name = "enp3s0";
-            address = [ "192.168.1.1/24" ];
+            address = [ "192.168.1.1/24" "fd00::1/64" ];
           };
-          systemd.network.networks."40-eth0".routes = [{
-            Destination = "0.0.0.0/0";
-            Gateway = "10.192.0.1";
-            GatewayOnLink = true;
-          }];
+          systemd.network.networks."40-eth0".routes = [
+            {
+              Destination = "0.0.0.0/0";
+              Gateway = "10.192.0.1";
+              GatewayOnLink = true;
+            }
+            {
+              Destination = "::/0";
+              Gateway = "fd00:1::1";
+              GatewayOnLink = true;
+            }
+          ];
           services.dnsmasq = {
             enable = true;
             resolveLocalQueries = false;
             settings = {
               interface = "enp3s0";
-              dhcp-range = "192.168.1.2,192.168.1.254,24h";
-              dhcp-option = [ "option:domain-search,kn" ];
+              enable-ra = true;
+              dhcp-option = [ "option:domain-search,kn" "option6:domain-search,kn" ];
+              dhcp-range = [
+                "192.168.1.2,192.168.1.254,24h"
+                "fd00::,ra-stateless"
+              ];
               server = [
                 "/kn/10.192.0.1#15353"
                 "223.5.5.5"
