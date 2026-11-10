@@ -15,13 +15,19 @@
 
     systemd.services.podman-new-api.after = [ "postgresql.service" ];
     virtualisation.oci-containers.containers.new-api = {
-      image = "docker.io/calciumion/new-api:v0.13.2";
+      image = "docker.io/calciumion/new-api:v1.0.0-rc.49";
       cmd = [ "--log-dir" "/app/logs" ];
       environment = {
         TZ = "Asia/Shanghai";
         ERROR_LOG_ENABLED = "true";
         BATCH_UPDATE_ENABLED = "true";
         NODE_NAME = "new-api-node-1";
+        # RELAY_TIMEOUT must stay unset: it is a whole-request timeout and
+        # truncates legitimate long streaming responses.
+        RELAY_IDLE_CONN_TIMEOUT = "60";
+        RELAY_RESPONSE_HEADER_TIMEOUT = "60";
+        RELAY_HTTP2_PING_IDLE_TIMEOUT = "30";
+        RELAY_HTTP2_PING_TIMEOUT = "15";
       };
       environmentFiles = [ config.sops.secrets.new-api-env.path ];
       ports = [ "3005:3000" ];
