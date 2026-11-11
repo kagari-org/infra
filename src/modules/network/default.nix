@@ -26,10 +26,6 @@ in {
       networking.nftables.checkRuleset = false;
       networking.firewall.checkReversePath = false;
       networking.firewall.trustedInterfaces = [ "cn0" ];
-      networking.firewall.extraForwardRules = ''
-        iifname { "ve-*", "svc-*" } accept
-        iifname "cn0" oifname { "ve-*", "svc-*" } accept
-      '';
       networking.getaddrinfo.precedence."::ffff:0:0/96" = 100;
 
       boot.kernel.sysctl = {

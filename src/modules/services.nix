@@ -4,18 +4,30 @@
     module = { config, pkgs, lib, node, ... }: let
       services = config.infra.services;
       names = lib.attrNames services;
-      cname = name: svc: if svc.containerName != "" then svc.containerName else name;
+      cname = name: svc: if svc.container != "" then svc.container else name;
       entries = lib.mapAttrsToList (name: svc: "${name}:${cname name svc}") services;
+      filtered = lib.filterAttrs (_: svc: svc.filter) services;
+      addr = rule: "${if lib.hasInfix ":" rule.address then "ip6" else "ip"} daddr ${rule.address}";
+      rules = name: let
+        c = cname name filtered.${name};
+        allow = rule: if rule.port == null then [ "${addr rule} accept" ] else [
+          "${addr rule} tcp dport ${toString rule.port} accept"
+          "${addr rule} udp dport ${toString rule.port} accept"
+        ];
+        lines = lib.concatMap allow filtered.${name}.allow
+          ++ [ "ip daddr @bogons_v4 drop" "ip6 daddr @bogons_v6 drop" ];
+      in map (line: ''iifname "svc-${c}" ${line}'') lines;
+      forward = lib.concatMap rules (lib.attrNames filtered);
     in {
       options.infra.services = lib.mkOption {
         type = with lib.types; attrsOf (submodule {
           options = {
-            containerName = lib.mkOption {
+            container = lib.mkOption {
               type = str;
               default = "";
               description = "container (and veth) name, defaults to the attribute name";
             };
-            bindMounts = lib.mkOption {
+            mounts = lib.mkOption {
               type = with lib.types; attrsOf raw;
               default = { };
               description = "extra paths to bind mount into the container";
@@ -23,6 +35,24 @@
             config = lib.mkOption {
               type = raw;
               description = "nixos module running inside the container";
+            };
+            filter = lib.mkOption {
+              type = bool;
+              default = true;
+              description = "drop forwarded traffic from this container to bogon prefixes";
+            };
+            allow = lib.mkOption {
+              type = listOf (submodule {
+                options = {
+                  address = lib.mkOption { type = str; };
+                  port = lib.mkOption {
+                    type = nullOr port;
+                    default = null;
+                  };
+                };
+              });
+              default = [ ];
+              description = "destinations exempt from the forward filter, a null port allows every port";
             };
           };
         });
@@ -36,6 +66,39 @@
           message = "infra.services.${name}: container name must be at most 11 characters";
         }) services;
 
+        networking.nftables.tables.svc-forward = lib.mkIf (filtered != { }) {
+          family = "inet";
+          content = ''
+            set bogons_v4 {
+              type ipv4_addr
+              flags interval
+              elements = {
+                0.0.0.0/8, 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8,
+                169.254.0.0/16, 172.16.0.0/12, 192.0.2.0/24, 192.88.99.0/24,
+                192.168.0.0/16, 198.18.0.0/15, 198.51.100.0/24, 203.0.113.0/24,
+                224.0.0.0/4, 240.0.0.0/4
+              }
+            }
+
+            set bogons_v6 {
+              type ipv6_addr
+              flags interval
+              elements = {
+                ::/8, 0100::/64, 2001:2::/48, 2001:10::/28, 2001:db8::/32,
+                2002::/16, 3ffe::/16, fc00::/7, fe80::/10, fec0::/10, ff00::/8
+              }
+            }
+
+            chain forward {
+              type filter hook forward priority -50; policy accept;
+
+              iifname "svc-*" ct state established,related accept
+
+              ${lib.concatStringsSep "\n  " forward}
+            }
+          '';
+        };
+
         containers = lib.mapAttrs' (name: svc: let
           c = cname name svc;
         in lib.nameValuePair c {
@@ -46,7 +109,7 @@
             localAddress6 = "fe80::2/64";
           };
           allowedDevices = [ { node = "/dev/net/tun"; modifier = "rw"; } ];
-          bindMounts = { "/run/svc-net" = { }; } // svc.bindMounts;
+          bindMounts = { "/run/svc-net" = { }; } // svc.mounts;
           config = { lib, pkgs, ... }: {
             imports = [ svc.config ];
             system.stateVersion = lib.mkDefault "25.11";
