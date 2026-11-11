@@ -109,22 +109,22 @@ in {
       };
       services.caddy = lib.mkIf node.cryonet.bootstrap {
         enable = true;
+        email = "void@anil.lc";
         package = pkgs.caddy.withPlugins {
           plugins = [ "github.com/caddy-dns/cloudflare@v0.2.4" ];
           hash = "sha256-5a5cpFl90pEWt0lUC4ZJQ7g+1//ZvsRhee64Dt9vh5o=";
         };
         environmentFile = config.sops.secrets.caddy-env.path;
-        globalConfig = ''
-          http_port 18080
-          https_port 16809
-        '';
-        virtualHosts.${node.address}.extraConfig = ''
-          reverse_proxy 127.0.0.1:2333
-          tls {
-            alpn http/1.1
-            dns cloudflare {$CLOUDFLARE_API_TOKEN}
-          }
-        '';
+        virtualHosts.cryonet = {
+          hostName = "${node.address}:16809";
+          extraConfig = ''
+            reverse_proxy 127.0.0.1:2333
+            tls {
+              alpn http/1.1
+              dns cloudflare {$CLOUDFLARE_API_TOKEN}
+            }
+          '';
+        };
       };
 
       systemd.network.networks.loopback = {

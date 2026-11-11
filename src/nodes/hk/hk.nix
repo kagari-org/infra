@@ -5,7 +5,7 @@
     dns = [ "1.0.0.1" ];
     cryonet.bootstrap = true;
 
-    modules = (modules "nixos") ++ [ ({ modulesPath, config, ... }: {
+    modules = (modules "nixos") ++ [ ({ modulesPath, config, pkgs, ... }: {
       # hardware
       imports = [ (modulesPath + "/profiles/qemu-guest.nix") ];
       boot.initrd.availableKernelModules = [ "ata_piix" "uhci_hcd" "virtio_pci" "virtio_scsi" "sd_mod" "sr_mod" ];
@@ -50,127 +50,33 @@
         lt-cred-mech = true;
       };
 
-      security.acme = {
-        acceptTerms = true;
-        defaults.email = "void@anil.lc";
+      services.caddy = {
+        enable = true;
+        email = "void@anil.lc";
+        virtualHosts = {
+          "dash.kagari.org".extraConfig = "reverse_proxy 10.11.0.3:3000";
+          "note.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3007";
+          "atuin.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3012";
+          "vw.anil.lc".extraConfig = "reverse_proxy 10.11.0.3:3013";
+          "git.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3001";
+          "immich.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3006";
+          "multica.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3004";
+          "llm.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3005";
+          "sns.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3008";
+          "cache.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3010";
+          "buildbot.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3011";
+          "kankaiz.com".extraConfig = "reverse_proxy 10.11.0.3:8083";
+          "www.kankaiz.com".extraConfig = "redir https://kankaiz.com{uri} permanent";
+        };
       };
 
-      services.nginx = {
-        enable = true;
-        recommendedProxySettings = true;
-        recommendedTlsSettings = true;
-        recommendedOptimisation = true;
-        recommendedGzipSettings = true;
-        clientMaxBodySize = "0";
-        virtualHosts = {
-          "dash.kagari.org" = {
-            enableACME = true;
-            forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://10.11.0.3:3000";
-              proxyWebsockets = true;
-            };
-          };
-          "note.ani.llc" = {
-            enableACME = true;
-            forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://10.11.0.3:3007";
-              proxyWebsockets = true;
-            };
-          };
-          "atuin.ani.llc" = {
-            enableACME = true;
-            forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://10.11.0.3:3012";
-              proxyWebsockets = true;
-            };
-          };
-          "vw.anil.lc" = {
-            enableACME = true;
-            forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://10.11.0.3:3013";
-              proxyWebsockets = true;
-            };
-          };
-          "git.ani.llc" = {
-            enableACME = true;
-            forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://10.11.0.3:3001";
-              proxyWebsockets = true;
-            };
-          };
-          "immich.ani.llc" = {
-            enableACME = true;
-            forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://10.11.0.3:3006";
-              proxyWebsockets = true;
-            };
-          };
-          "multica.ani.llc" = {
-            enableACME = true;
-            forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://10.11.0.3:3004";
-              proxyWebsockets = true;
-            };
-          };
-          "llm.ani.llc" = {
-            enableACME = true;
-            forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://10.11.0.3:3005";
-              proxyWebsockets = true;
-            };
-          };
-          "sns.ani.llc" = {
-            enableACME = true;
-            forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://10.11.0.3:3008";
-              proxyWebsockets = true;
-            };
-          };
-          "cache.ani.llc" = {
-            enableACME = true;
-            forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://10.11.0.3:3010";
-              proxyWebsockets = true;
-            };
-          };
-          "buildbot.ani.llc" = {
-            enableACME = true;
-            forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://10.11.0.3:3011";
-              proxyWebsockets = true;
-            };
-          };
-          "kankaiz.com" = {
-            enableACME = true;
-            forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://10.11.0.3:8083";
-              proxyWebsockets = true;
-            };
-          };
-          "www.kankaiz.com" = {
-            enableACME = true;
-            forceSSL = true;
-            globalRedirect = "kankaiz.com";
-          };
-        };
-        streamConfig = ''
-          server {
-            listen 2222;
-            proxy_pass 10.11.0.3:2222;
-          }
-        '';
+      systemd.services.forgejo-ssh = {
+        wantedBy = [ "multi-user.target" ];
+        wants = [ "network-online.target" ];
+        after = [ "network-online.target" ];
+        path = [ pkgs.socat ];
+        serviceConfig.Restart = "always";
+        script = "exec socat TCP-LISTEN:2222,fork,reuseaddr TCP:10.11.0.3:2222";
       };
     }) ];
   };
