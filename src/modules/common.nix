@@ -4,6 +4,8 @@
     module = { lib, name, ... }: {
       imports = [ inputs.sops-nix.nixosModules.sops ];
       system.stateVersion = "25.05";
+      # keeps secret generations for bind mounts of nixos containers
+      sops.keepGenerations = 0;
       services.openssh.enable = true;
       networking.hostName = lib.mkDefault name;
       zramSwap.enable = true;

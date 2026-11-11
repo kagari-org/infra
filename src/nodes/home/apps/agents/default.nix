@@ -1,8 +1,14 @@
 { infra.modules = [{
   type = "home";
-  module = { config, pkgs, ... }: {
-    sops.secrets.agents-multica-key.sopsFile = ./secrets.yaml;
-    sops.secrets.agents-llm-key.sopsFile = ./secrets.yaml;
+  module = { config, ... }: {
+    sops.secrets.agents-multica-key = {
+      sopsFile = ./secrets.yaml;
+      restartUnits = [ "container@agents.service" ];
+    };
+    sops.secrets.agents-llm-key = {
+      sopsFile = ./secrets.yaml;
+      restartUnits = [ "container@agents.service" ];
+    };
 
     containers.agents = {
       autoStart = true;

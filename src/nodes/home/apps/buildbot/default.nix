@@ -7,8 +7,11 @@
       sops.secrets.buildbot-app-secret-key.sopsFile = ./secrets.yaml;
       sops.secrets.buildbot-oauth-secret.sopsFile = ./secrets.yaml;
       sops.secrets.buildbot-webhook-secret.sopsFile = ./secrets.yaml;
-      sops.secrets.buildbot-worker-password.sopsFile = ./secrets.yaml;
       sops.secrets.buildbot-workers.sopsFile = ./secrets.yaml;
+      sops.secrets.buildbot-worker-password = {
+        sopsFile = ./secrets.yaml;
+        restartUnits = [ "container@builder.service" ];
+      };
 
       services.nginx.virtualHosts."buildbot.ani.llc".listen = [ { addr = "0.0.0.0"; port = 3011; } ];
 
