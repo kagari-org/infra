@@ -32,6 +32,16 @@
               default = [ ];
               description = "extra systemd-nspawn flags";
             };
+            devices = lib.mkOption {
+              type = with lib.types; listOf str;
+              default = [ ];
+              description = "extra device nodes to allow in the container";
+            };
+            nixpkgs = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = "nixpkgs path used to evaluate the container";
+            };
             mounts = lib.mkOption {
               type = with lib.types; attrsOf raw;
               default = { };
@@ -122,7 +132,9 @@
           privateNetwork = true;
           extraVeths."svc-${c}" = { };
           extraFlags = svc.flags;
-          allowedDevices = [ { node = "/dev/net/tun"; modifier = "rw"; } ];
+          nixpkgs = if svc.nixpkgs != null then svc.nixpkgs else pkgs.path;
+          allowedDevices = [ { node = "/dev/net/tun"; modifier = "rw"; } ]
+            ++ map (node: { inherit node; modifier = "rwm"; }) svc.devices;
           bindMounts = { "/run/svc-net" = { }; } // svc.mounts;
           config = { lib, pkgs, ... }: {
             imports = [ svc.config ];
