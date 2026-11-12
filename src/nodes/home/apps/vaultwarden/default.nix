@@ -3,16 +3,23 @@
   module = { config, ... }: {
     sops.secrets.vaultwarden-admin = {
       sopsFile = ./secrets.yaml;
+      restartUnits = [ "container@vaultwarden.service" ];
     };
 
-    services.vaultwarden = {
-      enable = true;
-      domain = "vw.anil.lc";
-      environmentFile = config.sops.secrets.vaultwarden-admin.path;
+    infra.services.vaultwarden = {
+      mounts."/run/secrets" = { };
       config = {
-        ROCKET_PORT = 3013;
-        ROCKET_ADDRESS = "0.0.0.0";
-        SIGNUPS_ALLOWED = false;
+        networking.firewall.allowedTCPPorts = [ 8222 ];
+        services.vaultwarden = {
+          enable = true;
+          domain = "vw.anil.lc";
+          environmentFile = config.sops.secrets.vaultwarden-admin.path;
+          config = {
+            ROCKET_ADDRESS = "::";
+            ROCKET_PORT = 8222;
+            SIGNUPS_ALLOWED = false;
+          };
+        };
       };
     };
   };

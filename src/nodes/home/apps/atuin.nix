@@ -1,10 +1,13 @@
 { infra.modules = [{
   type = "home";
   module = {
-    services.atuin = {
-      enable = true;
-      host = "0.0.0.0";
-      port = 3012;
+    infra.services.atuin.config = { pkgs, ... }: {
+      services.postgresql.package = pkgs.postgresql_18;
+      services.atuin = {
+        enable = true;
+        host = "::";
+        openFirewall = true;
+      };
     };
   };
 }]; }

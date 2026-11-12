@@ -26,7 +26,7 @@ in {
         linkConfig.RequiredForOnline = false;
         networkConfig = {
           DHCP = "no";
-          LinkLocalAddressing = "no";
+          LinkLocalAddressing = "ipv6";
           IPv6AcceptRA = false;
         };
       };

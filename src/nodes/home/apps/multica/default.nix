@@ -1,24 +1,33 @@
-{ infra.modules = [{
-  type = "home";
-  module = { config, ... }: {
-    sops.secrets.multica-env = {
-      sopsFile = ./secrets.yaml;
-      mode = "0400";
-    };
+{ modules, ... }: {
+  infra.modules = [{
+    type = "home";
+    module = { config, ... }: {
+      sops.secrets.multica-env = {
+        sopsFile = ./secrets.yaml;
+        mode = "0400";
+        restartUnits = [ "container@multica.service" ];
+      };
 
-    services.multica = {
-      enable = true;
-      environmentFile = config.sops.secrets.multica-env.path;
-      frontend = {
-        listenAddress = "0.0.0.0";
-        port = 3004;
-        publicUrl = "https://multica.ani.llc";
+      infra.services.multica = {
+        mounts."/run/secrets" = { };
+        config = { pkgs, ... }: {
+          imports = modules "multica";
+          networking.firewall.allowedTCPPorts = [ 3000 ];
+          services.multica = {
+            enable = true;
+            environmentFile = config.sops.secrets.multica-env.path;
+            frontend = {
+              listenAddress = "::";
+              publicUrl = "https://multica.ani.llc";
+            };
+            backend.publicUrl = "https://multica.ani.llc";
+          };
+          services.postgresql = {
+            package = pkgs.postgresql_18;
+            extensions = ps: [ ps.pgvector ];
+          };
+        };
       };
-      backend = {
-        port = 3009;
-        publicUrl = "https://multica.ani.llc";
-      };
-      web.remoteApiUrl = "http://127.0.0.1:3009";
     };
-  };
-}]; }
+  }];
+}

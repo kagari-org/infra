@@ -55,15 +55,15 @@
         email = "void@anil.lc";
         virtualHosts = {
           "dash.kagari.org".extraConfig = "reverse_proxy 10.11.0.3:3000";
-          "note.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3007";
-          "atuin.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3012";
-          "vw.anil.lc".extraConfig = "reverse_proxy 10.11.0.3:3013";
-          "git.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3001";
+          "note.ani.llc".extraConfig = "reverse_proxy trilium.kn:8080";
+          "atuin.ani.llc".extraConfig = "reverse_proxy atuin.kn:8888";
+          "vw.anil.lc".extraConfig = "reverse_proxy vaultwarden.kn:8222";
+          "git.ani.llc".extraConfig = "reverse_proxy forgejo.kn:3000";
           "immich.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3006";
-          "multica.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3004";
+          "multica.ani.llc".extraConfig = "reverse_proxy multica.kn:3000";
           "llm.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3005";
           "sns.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3008";
-          "cache.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3010";
+          "cache.ani.llc".extraConfig = "reverse_proxy harmonia.kn:5000";
           "buildbot.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3011";
           "kankaiz.com".extraConfig = "reverse_proxy 10.11.0.3:8083";
           "www.kankaiz.com".extraConfig = "redir https://kankaiz.com{uri} permanent";
@@ -76,7 +76,7 @@
         after = [ "network-online.target" ];
         path = [ pkgs.socat ];
         serviceConfig.Restart = "always";
-        script = "exec socat TCP-LISTEN:2222,fork,reuseaddr TCP:10.11.0.3:2222";
+        script = "exec socat TCP-LISTEN:2222,fork,reuseaddr TCP:forgejo.kn:22";
       };
     }) ];
   };

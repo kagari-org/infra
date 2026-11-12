@@ -99,15 +99,23 @@
           '';
         };
 
+        systemd.network.networks."40-svc-veth" = lib.mkIf (services != { }) {
+          matchConfig = { Kind = "veth"; Name = "svc-*"; };
+          linkConfig.RequiredForOnline = false;
+          address = [ "fe80::1/64" ];
+          networkConfig = {
+            DHCP = "no";
+            LinkLocalAddressing = "no";
+            IPv6AcceptRA = false;
+          };
+        };
+
         containers = lib.mapAttrs' (name: svc: let
           c = cname name svc;
         in lib.nameValuePair c {
           autoStart = true;
           privateNetwork = true;
-          extraVeths."svc-${c}" = {
-            hostAddress6 = "fe80::1/64";
-            localAddress6 = "fe80::2/64";
-          };
+          extraVeths."svc-${c}" = { };
           allowedDevices = [ { node = "/dev/net/tun"; modifier = "rw"; } ];
           bindMounts = { "/run/svc-net" = { }; } // svc.mounts;
           config = { lib, pkgs, ... }: {
@@ -122,7 +130,11 @@
             '';
             systemd.network.networks."40-svc-${c}" = {
               matchConfig.Name = "svc-${c}";
-              networkConfig.KeepConfiguration = "static";
+              address = [ "fe80::2/64" ];
+              networkConfig = {
+                KeepConfiguration = "static";
+                IPv6AcceptRA = false;
+              };
               linkConfig.MTUBytes = 1280;
               routes = [
                 {
@@ -142,7 +154,6 @@
                 RemainAfterExit = true;
               };
               script = ''
-                ip -6 route del default via fe80::1 dev svc-${c} || true
                 ip -6 addr replace "$(cat /run/svc-net/${name})"/128 dev svc-${c}
               '';
             };
@@ -152,10 +163,16 @@
         systemd.services = lib.mapAttrs' (name: svc: let
           c = cname name svc;
         in lib.nameValuePair "container@${c}" {
-          path = [ pkgs.coreutils pkgs.iproute2 pkgs.jq pkgs.passt config.systemd.package ];
+          path = [ pkgs.coreutils pkgs.iproute2 pkgs.jq pkgs.passt config.systemd.package config.services.bird.package ];
           postStart = ''
             set -euo pipefail
             ip link set dev svc-${c} mtu 1280
+            for _ in $(seq 1 50); do
+              case "$(birdc show interfaces 2>/dev/null || true)" in
+                *"svc-${c} "*) break ;;
+              esac
+              sleep 0.1
+            done
             systemctl try-reload-or-restart bird || echo "bird reload failed" >&2
             cg=/sys/fs/cgroup$(systemctl show -p ControlGroup --value container@${c}.service)
             pid=$(head -n1 "$cg/payload/init.scope/cgroup.procs")

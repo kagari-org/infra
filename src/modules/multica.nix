@@ -1,6 +1,6 @@
 {
   infra.modules = [ {
-    type = "nixos";
+    type = "multica";
     module = { config, pkgs, lib, ... }: let
       version = "0.6.5";
 
@@ -321,6 +321,7 @@
         ];
 
         services.postgresql = lib.mkIf cfg.database.createLocally {
+          enable = true;
           ensureDatabases = [ cfg.database.name ];
           ensureUsers = [{
             name = cfg.database.user;
