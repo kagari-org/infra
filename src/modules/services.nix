@@ -131,6 +131,9 @@
             networking.useNetworkd = true;
             networking.resolvconf.enable = false;
             services.resolved.enable = false;
+            systemd.globalEnvironment.NIX_REMOTE = "daemon";
+            environment.sessionVariables.NIX_REMOTE = "daemon";
+            environment.variables.NIX_REMOTE = "daemon";
             environment.etc."resolv.conf".text = ''
               nameserver 192.0.2.53
               search kn

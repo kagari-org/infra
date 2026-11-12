@@ -20,8 +20,7 @@
         config = { pkgs, ... }: {
           imports = [ inputs.nixbot.nixosModules.nixbot ];
 
-          networking.firewall.allowedTCPPorts = [ 3011 ];
-          services.nginx.virtualHosts."nixbot.ani.llc".listen = [ { addr = "[::]"; port = 3011; } ];
+          networking.firewall.allowedTCPPorts = [ 80 ];
 
           # https://github.com/NixOS/nix/blob/3a687eeb4f64c3f9266b2c0b12d8993c72541aed/src/libutil/linux/linux-namespaces.cc#L64
           systemd.services.mount-proc = {
