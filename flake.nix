@@ -7,7 +7,7 @@
   inputs.cryonet.url = "github:kagari-org/cryonet";
   inputs.stable-npm.url = "github:Anillc/stable-npm";
   inputs.substituter-api.url = "github:Anillc/substituter-api";
-  inputs.buildbot-nix.url = "github:nix-community/buildbot-nix";
+  inputs.nixbot.url = "github:Mic92/nixbot";
   inputs.sing-portal.url = "github:kagari-org/sing-portal";
   inputs.proxmox-nixos.url = "github:SaumonNet/proxmox-nixos";
   inputs.namae.url = "github:kagari-org/namae";

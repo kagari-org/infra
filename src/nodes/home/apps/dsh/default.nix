@@ -8,6 +8,7 @@
       restartUnits = [ "nginx.service" ];
     };
 
+    services.nginx.enable = true;
     services.nginx.virtualHosts.dsh = {
       listen = [ { addr = "0.0.0.0"; port = 3016; } ];
       basicAuthFile = config.sops.secrets.dsh-basic-auth.path;
