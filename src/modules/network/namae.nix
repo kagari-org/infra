@@ -37,6 +37,11 @@
             default = true;
             description = "gossip to peers";
           };
+          options.rdns = lib.mkOption {
+            type = bool;
+            default = true;
+            description = "publish PTR records for A and AAAA records";
+          };
         });
         default = [];
         description = "records";
@@ -60,6 +65,7 @@
             // lib.optionalAttrs (record.ttl != null) { ttl = record.ttl; }
             // lib.optionalAttrs (record.priority != 100) { priority = record.priority; }
             // lib.optionalAttrs (!record.publish) { publish = record.publish; }
+            // lib.optionalAttrs (!record.rdns) { rdns = record.rdns; }
           )) config.services.namae.records;
         };
 
@@ -67,7 +73,7 @@
 
         services.resolved.dnsDelegates.namae.Delegate = {
           DNS = [ "127.0.0.1:15353" ];
-          Domains = "kn.";
+          Domains = "kn. ~11.10.in-addr.arpa. ~1.1.d.f.ip6.arpa.";
         };
 
         systemd.services.namae = {

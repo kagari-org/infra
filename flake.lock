@@ -214,11 +214,11 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1794240659,
-        "narHash": "sha256-qmsH8242J1fcFHpGiWtOEfbrzBvYNDZQSGAV+G/w9RQ=",
+        "lastModified": 1794468327,
+        "narHash": "sha256-t2rnBm25kh43ANxipgzUX3MZgHrLJjP9tirh3Ua2pzA=",
         "owner": "kagari-org",
         "repo": "namae",
-        "rev": "115bc0133afb9db089589cade132f14ba28109e1",
+        "rev": "c108928a2a807b67d7f8b6570b83f5f52dc89c24",
         "type": "github"
       },
       "original": {
