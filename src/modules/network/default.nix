@@ -21,6 +21,15 @@ in {
       };
       # https://github.com/NixOS/nixpkgs/issues/69414
       systemd.network.networks."80-container-ve".enable = false;
+      systemd.network.networks."40-container-ve" = {
+        matchConfig = { Kind = "veth"; Name = "ve-*"; };
+        linkConfig.RequiredForOnline = false;
+        networkConfig = {
+          DHCP = "no";
+          LinkLocalAddressing = "no";
+          IPv6AcceptRA = false;
+        };
+      };
 
       networking.nftables.enable = true;
       networking.nftables.checkRuleset = false;
