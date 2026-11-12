@@ -1,12 +1,18 @@
 { infra.modules = [{
   type = "home";
   module = {
-    services.immich = {
-      enable = true;
-      host = "";
-      port = 3006;
-      mediaLocation = "/data/immich";
-      machine-learning.enable = true;
+    infra.services.immich = {
+      mounts."/data/immich" = { isReadOnly = false; };
+      config = { pkgs, ... }: {
+        services.postgresql.package = pkgs.postgresql_18;
+        services.immich = {
+          enable = true;
+          host = "::";
+          mediaLocation = "/data/immich";
+          openFirewall = true;
+          machine-learning.enable = true;
+        };
+      };
     };
   };
 }]; }

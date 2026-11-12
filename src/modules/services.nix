@@ -27,6 +27,11 @@
               default = "";
               description = "container (and veth) name, defaults to the attribute name";
             };
+            flags = lib.mkOption {
+              type = with lib.types; listOf str;
+              default = [ ];
+              description = "extra systemd-nspawn flags";
+            };
             mounts = lib.mkOption {
               type = with lib.types; attrsOf raw;
               default = { };
@@ -116,11 +121,13 @@
           autoStart = true;
           privateNetwork = true;
           extraVeths."svc-${c}" = { };
+          extraFlags = svc.flags;
           allowedDevices = [ { node = "/dev/net/tun"; modifier = "rw"; } ];
           bindMounts = { "/run/svc-net" = { }; } // svc.mounts;
           config = { lib, pkgs, ... }: {
             imports = [ svc.config ];
             system.stateVersion = lib.mkDefault "25.11";
+            networking.getaddrinfo.precedence."::ffff:0:0/96" = 100;
             networking.useNetworkd = true;
             networking.resolvconf.enable = false;
             services.resolved.enable = false;
@@ -223,7 +230,7 @@
                 printf '[[records]]\nname = "%s"\ntype = "AAAA"\nvalue = "%s"\n' \
                   "$name" "$a" > "/run/namae.d/$name.toml"
                 printf 'protocol static svc_%s {\n  ipv6 { table igp_v6; };\n  route %s/128 via fe80::2 dev "svc-%s";\n}\n' \
-                  "$name" "$a" "''${s#*:}" > "/run/bird-services.d/$name.conf"
+                  "''${name//-/_}" "$a" "''${s#*:}" > "/run/bird-services.d/$name.conf"
               done
 
               ${config.systemd.package}/bin/systemctl try-reload-or-restart bird namae || true

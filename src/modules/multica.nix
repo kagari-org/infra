@@ -410,6 +410,7 @@
             Group = "multica";
             ExecStart = "${webPackage}/bin/multica-web";
             Restart = "on-failure";
+            KillSignal = "SIGKILL";
           };
         };
       };

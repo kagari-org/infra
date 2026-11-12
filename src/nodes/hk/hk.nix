@@ -54,18 +54,18 @@
         enable = true;
         email = "void@anil.lc";
         virtualHosts = {
-          "dash.kagari.org".extraConfig = "reverse_proxy 10.11.0.3:3000";
+          "dash.kagari.org".extraConfig = "reverse_proxy monitoring.kn:3000";
           "note.ani.llc".extraConfig = "reverse_proxy trilium.kn:8080";
           "atuin.ani.llc".extraConfig = "reverse_proxy atuin.kn:8888";
           "vw.anil.lc".extraConfig = "reverse_proxy vaultwarden.kn:8222";
           "git.ani.llc".extraConfig = "reverse_proxy forgejo.kn:3000";
-          "immich.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3006";
+          "immich.ani.llc".extraConfig = "reverse_proxy immich.kn:2283";
           "multica.ani.llc".extraConfig = "reverse_proxy multica.kn:3000";
-          "llm.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3005";
-          "sns.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3008";
+          "llm.ani.llc".extraConfig = "reverse_proxy new-api.kn:3000";
+          "sns.ani.llc".extraConfig = "reverse_proxy sns.kn:3008";
           "cache.ani.llc".extraConfig = "reverse_proxy harmonia.kn:5000";
           "buildbot.ani.llc".extraConfig = "reverse_proxy 10.11.0.3:3011";
-          "kankaiz.com".extraConfig = "reverse_proxy 10.11.0.3:8083";
+          "kankaiz.com".extraConfig = "reverse_proxy kankaiz.kn:80";
           "www.kankaiz.com".extraConfig = "redir https://kankaiz.com{uri} permanent";
         };
       };

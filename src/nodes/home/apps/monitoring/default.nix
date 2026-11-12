@@ -3,49 +3,60 @@
   module = { config, lib, nodes, ... }: {
     sops.secrets.grafana-admin = {
       sopsFile = ./secrets.yaml;
-      owner = "grafana";
+      restartUnits = [ "container@monitoring.service" ];
     };
 
     sops.secrets.grafana-secret-key = {
       sopsFile = ./secrets.yaml;
-      owner = "grafana";
+      restartUnits = [ "container@monitoring.service" ];
     };
 
-    services.prometheus = {
-      enable = true;
-      port = 3014;
-      scrapeConfigs = [
-        {
-          job_name = "node";
-          static_configs = [
-            { targets = map (n: "${n.igp-v4}:9101") (lib.attrValues nodes); }
+    infra.services.monitoring = {
+      filter = false;
+      mounts."/run/secrets" = { };
+      config = {
+        networking.firewall.allowedTCPPorts = [ 3000 ];
+
+        services.prometheus = {
+          enable = true;
+          scrapeConfigs = [
+            {
+              job_name = "node";
+              static_configs = [
+                { targets = map (name: "${name}.kn:9101") (lib.attrNames nodes); }
+              ];
+            }
           ];
-        }
-      ];
-    };
+        };
 
-    services.grafana = {
-      enable = true;
-      settings = {
-        server = {
-          http_addr = "0.0.0.0";
-          root_url = "https://dash.kagari.org/";
+        systemd.services.grafana.serviceConfig.LoadCredential = [
+          "grafana-admin:${config.sops.secrets.grafana-admin.path}"
+          "grafana-secret-key:${config.sops.secrets.grafana-secret-key.path}"
+        ];
+        services.grafana = {
+          enable = true;
+          settings = {
+            server = {
+              http_addr = "::";
+              root_url = "https://dash.kagari.org/";
+            };
+            security = {
+              admin_user = "Anillc";
+              admin_password = "$__file{/run/credentials/grafana.service/grafana-admin}";
+              secret_key = "$__file{/run/credentials/grafana.service/grafana-secret-key}";
+            };
+            analytics.reporting_enabled = false;
+          };
+          provision.datasources.settings.datasources = [
+            {
+              name = "Prometheus";
+              type = "prometheus";
+              url = "http://127.0.0.1:9090";
+              isDefault = true;
+            }
+          ];
         };
-        security = {
-          admin_user = "Anillc";
-          admin_password = "$__file{${config.sops.secrets.grafana-admin.path}}";
-          secret_key = "$__file{${config.sops.secrets.grafana-secret-key.path}}";
-        };
-        analytics.reporting_enabled = false;
       };
-      provision.datasources.settings.datasources = [
-        {
-          name = "Prometheus";
-          type = "prometheus";
-          url = "http://127.0.0.1:3014";
-          isDefault = true;
-        }
-      ];
     };
   };
 }]; }
