@@ -11,6 +11,7 @@
   inputs.sing-portal.url = "github:kagari-org/sing-portal";
   inputs.proxmox-nixos.url = "github:SaumonNet/proxmox-nixos";
   inputs.namae.url = "github:kagari-org/namae";
+  inputs.kagi.url = "github:kagari-org/kagi";
 
   outputs = inputs@{
     self, nixpkgs, flake-parts, import-tree, ...

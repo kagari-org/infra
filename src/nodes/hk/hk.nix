@@ -5,7 +5,7 @@
     dns = [ "1.0.0.1" ];
     cryonet.bootstrap = true;
 
-    modules = (modules "nixos") ++ [ ({ modulesPath, config, pkgs, ... }: {
+    modules = (modules "nixos") ++ (modules "hk") ++ [ ({ modulesPath, config, pkgs, ... }: {
       # hardware
       imports = [ (modulesPath + "/profiles/qemu-guest.nix") ];
       boot.initrd.availableKernelModules = [ "ata_piix" "uhci_hcd" "virtio_pci" "virtio_scsi" "sd_mod" "sr_mod" ];
@@ -33,7 +33,8 @@
         allowedTCPPorts      = [
           port
           80 443
-          2222 # gitea ssh
+          222 # kagi
+          2222 # forgejo
         ];
       };
       sops.secrets.coturn-user = {
@@ -77,6 +78,15 @@
         path = [ pkgs.socat ];
         serviceConfig.Restart = "always";
         script = "exec socat TCP-LISTEN:2222,fork,reuseaddr TCP:forgejo.kn:22";
+      };
+
+      systemd.services.kagi-ssh = {
+        wantedBy = [ "multi-user.target" ];
+        wants = [ "network-online.target" ];
+        after = [ "network-online.target" ];
+        path = [ pkgs.socat ];
+        serviceConfig.Restart = "always";
+        script = "exec socat TCP-LISTEN:222,fork,reuseaddr TCP:kagi.kn:22";
       };
     }) ];
   };
