@@ -12,6 +12,7 @@
   inputs.proxmox-nixos.url = "github:SaumonNet/proxmox-nixos";
   inputs.namae.url = "github:kagari-org/namae";
   inputs.kagi.url = "github:kagari-org/kagi";
+  inputs.crossgram-qqnt.url = "github:xuuuuan/crossgram-qqnt";
 
   outputs = inputs@{
     self, nixpkgs, flake-parts, import-tree, ...

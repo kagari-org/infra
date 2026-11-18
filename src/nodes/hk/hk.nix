@@ -33,6 +33,7 @@
         allowedTCPPorts      = [
           port
           80 443
+          4430 # xgram mtproto
           222 # kagi
           2222 # forgejo
         ];
@@ -68,6 +69,15 @@
           "nixbot.ani.llc".extraConfig = "reverse_proxy nixbot.kn:80";
           "kankaiz.com".extraConfig = "reverse_proxy kankaiz.kn:80";
           "www.kankaiz.com".extraConfig = "redir https://kankaiz.com{uri} permanent";
+          "xgram.ani.llc".extraConfig = ''
+            @xgram path_regexp ^/(group-files($|/)|bot)
+            handle @xgram {
+              reverse_proxy xgram.kn:80
+            }
+            handle {
+              respond 404
+            }
+          '';
         };
       };
 
@@ -87,6 +97,15 @@
         path = [ pkgs.socat ];
         serviceConfig.Restart = "always";
         script = "exec socat TCP-LISTEN:222,fork,reuseaddr TCP:kagi.kn:22";
+      };
+
+      systemd.services.xgram-mtproto = {
+        wantedBy = [ "multi-user.target" ];
+        wants = [ "network-online.target" ];
+        after = [ "network-online.target" ];
+        path = [ pkgs.socat ];
+        serviceConfig.Restart = "always";
+        script = "exec socat TCP-LISTEN:4430,fork,reuseaddr TCP:xgram.kn:4430";
       };
     }) ];
   };
