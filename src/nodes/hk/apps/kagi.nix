@@ -14,7 +14,9 @@
             users.guest.skip_key_check = true;
             users."anillc|root" = {
               match = "regex";
-              keys = config.users.users.root.openssh.authorizedKeys.keys;
+              keys = config.users.users.root.openssh.authorizedKeys.keys ++ [
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMMHicZBRpWbhs4RIcVtl4utGQklweb+WspOApyDgpo4 kagi"
+              ];
               admin = true;
               stream_buffer_bytes = 512 * 1024 * 1024;
               rules = [
