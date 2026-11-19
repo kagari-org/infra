@@ -1,13 +1,17 @@
 { inputs, ... }: {
   infra.modules = [{
     type = "home";
-    module = { lib, nodes, ... }: {
+    module = { lib, nodes, config, ... }: {
       networking.nftables.tables.nixos-fw.content = lib.mkAfter ''
         chain sing-portal-output {
           type route hook output priority mangle; policy accept;
           socket cgroupv2 level 1 "singportal.slice" ct mark set ${toString nodes.home.singbox.direct}
         }
       '';
+      sops.secrets.sing-portal-server-env = {
+        sopsFile = ./secrets.yaml;
+        reloadUnits = [ "sing-portal.service" ];
+      };
       systemd.slices.singportal.wantedBy = [ "nftables.service" ];
       systemd.services.sing-portal = {
         wantedBy = [ "multi-user.target" ];
@@ -15,12 +19,14 @@
         wants = [ "network-online.target" ];
         path = [ inputs.sing-portal.packages.x86_64-linux.default ];
         script = ''
-          exec sing-portal serve \
+          exec sing-portal-server \
             --listen 0.0.0.0:3015 \
+            --agent-listen 0.0.0.0:3016 \
             --db "$STATE_DIRECTORY/portal.db"
         '';
         serviceConfig = {
           Slice = "singportal.slice";
+          EnvironmentFile = config.sops.secrets.sing-portal-server-env.path;
           StateDirectory = "sing-portal";
           Restart = "on-failure";
           RestartSec = "5s";

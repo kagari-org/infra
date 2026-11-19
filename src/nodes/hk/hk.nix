@@ -67,6 +67,7 @@
           "sns.ani.llc".extraConfig = "reverse_proxy sns.kn:3008";
           "cache.ani.llc".extraConfig = "reverse_proxy harmonia.kn:5000";
           "nixbot.ani.llc".extraConfig = "reverse_proxy nixbot.kn:80";
+          "sing-portal.ani.llc".extraConfig = "reverse_proxy home.kn:3016";
           "kankaiz.com".extraConfig = "reverse_proxy kankaiz.kn:80";
           "www.kankaiz.com".extraConfig = "redir https://kankaiz.com{uri} permanent";
           "xgram.ani.llc".extraConfig = ''

@@ -1,6 +1,4 @@
-{ config, withSystem, ... }: let
-  inherit (config) infra;
-in {
+{ withSystem, ... }: {
   infra.modules = [ {
     type = "nixos";
     module = withSystem "x86_64-linux" ({ inputs', ... }: { config, pkgs, lib, node, name, ... }: let
@@ -21,11 +19,6 @@ in {
         ];
 
         experimental.clash_api.external_controller = "127.0.0.1:9090";
-
-        outbound_defaults = {
-          tcp_keep_alive = "1m";
-          tcp_keep_alive_interval = "30s";
-        };
 
         services = [
           {
@@ -178,6 +171,10 @@ in {
         };
 
         services.sing-box.enable = true;
+        sops.secrets.sing-portal-agent-env = {
+          sopsFile = ./secrets.yaml;
+          reloadUnits = [ "sing-portal-agent.service" ];
+        };
         systemd.services.sing-portal-agent = {
           wantedBy = [ "multi-user.target" ];
           after = [ "network-online.target" ];
@@ -188,17 +185,17 @@ in {
             config.systemd.package
           ];
           script = ''
-            exec sing-portal agent \
-              --portal ${lib.escapeShellArg "ws://${infra.nodes.home.igp-v4}:3015"} \
+            exec sing-portal-agent \
+              --portal ${lib.escapeShellArg "ws://home.kn:3016"} \
               --name ${lib.escapeShellArg name} \
               --template ${template} \
               --config /etc/sing-box/config.json \
               --state-dir /var/lib/sing-portal-agent \
               --api-url http://127.0.0.1:9091 \
-              --restart-cmd ${lib.escapeShellArg "systemctl restart sing-box"} \
-              --interval 15s
+              --restart-cmd ${lib.escapeShellArg "systemctl restart sing-box"}
           '';
           serviceConfig = {
+            EnvironmentFile = config.sops.secrets.sing-portal-agent-env.path;
             StateDirectory = "sing-portal-agent";
             Restart = "always";
             RestartSec = "10s";
