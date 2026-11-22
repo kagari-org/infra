@@ -680,11 +680,11 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1795106307,
-        "narHash": "sha256-wetPlTwYs8YsduIi7mCpH1w1DavP8VZ9DddLbZd+efA=",
+        "lastModified": 1795145678,
+        "narHash": "sha256-0mgZBB6sjF4LRitNVIrJljnaQooWZJxVsZFiWfewdZU=",
         "owner": "kagari-org",
         "repo": "sing-portal",
-        "rev": "5e2ce90b1b9d8708e651883149842b99b7f21dec",
+        "rev": "a26ef51667b57f37fa26c0c528b51bc701b0381c",
         "type": "github"
       },
       "original": {
