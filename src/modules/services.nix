@@ -1,24 +1,7 @@
 {
   infra.modules = [ {
     type = "nixos";
-    module = { config, pkgs, lib, node, ... }: let
-      services = config.infra.services;
-      names = lib.attrNames services;
-      cname = name: svc: if svc.container != "" then svc.container else name;
-      entries = lib.mapAttrsToList (name: svc: "${name}:${cname name svc}") services;
-      filtered = lib.filterAttrs (_: svc: svc.filter) services;
-      addr = rule: "${if lib.hasInfix ":" rule.address then "ip6" else "ip"} daddr ${rule.address}";
-      rules = name: let
-        c = cname name filtered.${name};
-        allow = rule: if rule.port == null then [ "${addr rule} accept" ] else [
-          "${addr rule} tcp dport ${toString rule.port} accept"
-          "${addr rule} udp dport ${toString rule.port} accept"
-        ];
-        lines = lib.concatMap allow filtered.${name}.allow
-          ++ [ "ip daddr @bogons_v4 drop" "ip6 daddr @bogons_v6 drop" ];
-      in map (line: ''iifname "svc-${c}" ${line}'') lines;
-      forward = lib.concatMap rules (lib.attrNames filtered);
-    in {
+    module = { config, pkgs, lib, node, ... }: {
       options.infra.services = lib.mkOption {
         type = with lib.types; attrsOf (submodule {
           options = {
@@ -54,20 +37,30 @@
             filter = lib.mkOption {
               type = bool;
               default = true;
-              description = "drop forwarded traffic from this container to bogon prefixes";
+              description = "drop forwarded traffic from this container to bogon prefixes; domain allow rules require this";
             };
             allow = lib.mkOption {
               type = listOf (submodule {
                 options = {
-                  address = lib.mkOption { type = str; };
+                  address = lib.mkOption {
+                    type = nullOr str;
+                    default = null;
+                    description = "static destination address";
+                  };
+                  domain = lib.mkOption {
+                    type = nullOr str;
+                    default = null;
+                    description = "destination domain, resolved periodically on the host";
+                  };
                   port = lib.mkOption {
                     type = nullOr port;
                     default = null;
+                    description = "destination port; null allows every port";
                   };
                 };
               });
               default = [ ];
-              description = "destinations exempt from the forward filter, a null port allows every port";
+              description = "destinations exempt from the forward filter, by static address or domain";
             };
           };
         });
@@ -76,12 +69,50 @@
       };
 
       config = {
-        assertions = lib.mapAttrsToList (name: svc: {
-          assertion = builtins.stringLength (cname name svc) <= 11;
+        assertions = let
+          services = config.infra.services;
+        in lib.mapAttrsToList (name: svc: {
+          assertion = builtins.stringLength (if svc.container != "" then svc.container else name) <= 11;
           message = "infra.services.${name}: container name must be at most 11 characters";
-        }) services;
+        }) services
+          ++ lib.concatMap (name: lib.imap0 (idx: rule: [
+            {
+              assertion = (rule.address == null) != (rule.domain == null);
+              message = "infra.services.${name}: allow[${toString idx}] must set exactly one of address or domain";
+            }
+            {
+              assertion = rule.domain == null || services.${name}.filter;
+              message = "infra.services.${name}: allow[${toString idx}] uses a domain but filter = false";
+            }
+          ]) services.${name}.allow |> lib.flatten) (lib.attrNames services);
 
-        networking.nftables.tables.svc-forward = lib.mkIf (filtered != { }) {
+        networking.nftables.tables.svc-forward = let
+          filtered = lib.filterAttrs (_: svc: svc.filter) config.infra.services;
+          cname = name: svc: if svc.container != "" then svc.container else name;
+          set-name = c: idx: family: "svc_${lib.replaceStrings [ "-" "." ] [ "_" "_" ] c}_d${toString idx}_${family}";
+          accept = target: port: if port == null then [ "${target} accept" ] else [
+            "${target} tcp dport ${toString port} accept"
+            "${target} udp dport ${toString port} accept"
+          ];
+          service-sets = name: let
+            c = cname name filtered.${name};
+          in lib.concatStrings (lib.imap0 (idx: rule: lib.optionalString (rule.domain != null) ''
+            set ${set-name c idx "v4"} { type ipv4_addr; }
+            set ${set-name c idx "v6"} { type ipv6_addr; }
+          '') filtered.${name}.allow);
+          service-rules = name: let
+            c = cname name filtered.${name};
+            line = idx: rule: if rule.domain != null then
+              let
+                v4 = set-name c idx "v4";
+                v6 = set-name c idx "v6";
+              in lib.concatMap (target: accept target rule.port)
+                [ "ip daddr @${v4}" "ip6 daddr @${v6}" ]
+            else accept "${if lib.hasInfix ":" rule.address then "ip6" else "ip"} daddr ${rule.address}" rule.port;
+          in map (line: ''iifname "svc-${c}" ${line}'')
+            (lib.concatLists (lib.imap0 line filtered.${name}.allow)
+              ++ [ "ip daddr @bogons_v4 drop" "ip6 daddr @bogons_v6 drop" ]);
+        in lib.mkIf (filtered != { }) {
           family = "inet";
           content = ''
             set bogons_v4 {
@@ -104,17 +135,19 @@
               }
             }
 
+            ${lib.concatMapStrings service-sets (lib.attrNames filtered)}
+
             chain forward {
               type filter hook forward priority -50; policy accept;
 
               iifname "svc-*" ct state established,related accept
 
-              ${lib.concatStringsSep "\n  " forward}
+              ${lib.concatStringsSep "\n  " (lib.concatMap service-rules (lib.attrNames filtered))}
             }
           '';
         };
 
-        systemd.network.networks."40-svc-veth" = lib.mkIf (services != { }) {
+        systemd.network.networks."40-svc-veth" = lib.mkIf (config.infra.services != { }) {
           matchConfig = { Kind = "veth"; Name = "svc-*"; };
           linkConfig.RequiredForOnline = false;
           address = [ "fe80::1/64" ];
@@ -126,7 +159,7 @@
         };
 
         containers = lib.mapAttrs' (name: svc: let
-          c = cname name svc;
+          c = if svc.container != "" then svc.container else name;
         in lib.nameValuePair c {
           autoStart = true;
           privateNetwork = true;
@@ -180,42 +213,81 @@
               '';
             };
           };
-        }) services;
+        }) config.infra.services;
 
-        systemd.services = lib.mapAttrs' (name: svc: let
-          c = cname name svc;
-        in lib.nameValuePair "container@${c}" {
-          path = [ pkgs.coreutils pkgs.iproute2 pkgs.jq pkgs.passt config.systemd.package config.services.bird.package ];
-          postStart = ''
-            set -euo pipefail
-            ip link set dev svc-${c} mtu 1280
-            for _ in $(seq 1 50); do
-              case "$(birdc show interfaces 2>/dev/null || true)" in
-                *"svc-${c} "*) break ;;
-              esac
-              sleep 0.1
-            done
-            systemctl try-reload-or-restart bird || echo "bird reload failed" >&2
-            cg=/sys/fs/cgroup$(systemctl show -p ControlGroup --value container@${c}.service)
-            pid=$(head -n1 "$cg/payload/init.scope/cgroup.procs")
-            ip netns delete kn-${c} 2>/dev/null || true
-            ip netns attach kn-${c} "$pid"
-            uplink=$(ip -4 -j route show default | jq -r '.[0].dev // empty')
-            pasta --netns kn-${c} --runas 0 --no-netns-quit --config-net -I pasta0 \
-              ''${uplink:+-i "$uplink"} \
-              --dns-forward 192.0.2.53 --dns-host 127.0.0.53 \
-              -t none -u none -T none -U none -f &
-            sleep 1
-            ip netns delete kn-${c} 2>/dev/null || true
-            kill -0 $! 2>/dev/null || { echo "pasta failed to start" >&2; exit 1; }
-          '';
-        }) services;
+        systemd.services = let
+          services = config.infra.services;
+          cname = name: svc: if svc.container != "" then svc.container else name;
+          set-name = c: idx: family: "svc_${lib.replaceStrings [ "-" "." ] [ "_" "_" ] c}_d${toString idx}_${family}";
+          filter-domains = pkgs.writeShellApplication {
+            name = "svc-filter-domains";
+            runtimeInputs = with pkgs; [ nftables getent gawk coreutils ];
+            text = ''
+              v4="$1" v6="$2" domain="$3"
+              nft flush set inet svc-forward "$v4"
+              nft flush set inet svc-forward "$v6"
+              getent ahosts "$domain" | awk '{ print $1 }' | sort -u | while read -r ip; do
+                case "$ip" in
+                  *:*) nft add element inet svc-forward "$v6" "{" "$ip" "}" ;;
+                  *)   nft add element inet svc-forward "$v4" "{" "$ip" "}" ;;
+                esac
+              done || true
+            '';
+          };
+        in lib.mkMerge [
+          (lib.mapAttrs' (name: svc: let
+            c = cname name svc;
+          in lib.nameValuePair "container@${c}" {
+            path = [ pkgs.coreutils pkgs.iproute2 pkgs.jq pkgs.passt config.systemd.package config.services.bird.package ];
+            postStart = ''
+              set -euo pipefail
+              ip link set dev svc-${c} mtu 1280
+              for _ in $(seq 1 50); do
+                case "$(birdc show interfaces 2>/dev/null || true)" in
+                  *"svc-${c} "*) break ;;
+                esac
+                sleep 0.1
+              done
+              systemctl try-reload-or-restart bird || echo "bird reload failed" >&2
+              cg=/sys/fs/cgroup$(systemctl show -p ControlGroup --value container@${c}.service)
+              pid=$(head -n1 "$cg/payload/init.scope/cgroup.procs")
+              ip netns delete kn-${c} 2>/dev/null || true
+              ip netns attach kn-${c} "$pid"
+              uplink=$(ip -4 -j route show default | jq -r '.[0].dev // empty')
+              pasta --netns kn-${c} --runas 0 --no-netns-quit --config-net -I pasta0 \
+                ''${uplink:+-i "$uplink"} \
+                --dns-forward 192.0.2.53 --dns-host 127.0.0.53 \
+                -t none -u none -T none -U none -f &
+              sleep 1
+              ip netns delete kn-${c} 2>/dev/null || true
+              kill -0 $! 2>/dev/null || { echo "pasta failed to start" >&2; exit 1; }
+            '';
+          }) services)
+          (lib.mapAttrs' (name: svc: let
+            c = cname name svc;
+          in lib.nameValuePair "svc-filter-${c}" {
+            description = "Resolve domain filter entries for ${c}";
+            after = [ "nftables.service" "namae.service" "network-online.target" ];
+            wants = [ "network-online.target" ];
+            startAt = "*-*-* *:0/1:00";
+            script = "set -euo pipefail\n${lib.concatStrings (lib.imap0 (idx: rule: lib.optionalString (rule.domain != null) ''
+              ${lib.getExe filter-domains} \
+                ${lib.escapeShellArg (set-name c idx "v4")} \
+                ${lib.escapeShellArg (set-name c idx "v6")} \
+                ${lib.escapeShellArg rule.domain}
+            '') svc.allow)}";
+            serviceConfig = {
+              Type = "oneshot";
+              TimeoutStartSec = "60s";
+            };
+          }) (lib.filterAttrs (_: svc: svc.filter && lib.any (rule: rule.domain != null) svc.allow) services))
+        ];
 
         system.activationScripts.svc-net = {
           deps = [ "specialfs" ];
           supportsDryActivation = true;
           text = ''
-            spec="${toString entries}"
+            spec="${toString (lib.mapAttrsToList (name: svc: "${name}:${if svc.container != "" then svc.container else name}") config.infra.services)}"
             if [ "''${NIXOS_ACTION:-}" = dry-activate ]; then
               for s in $spec; do
                 name=''${s%%:*}
@@ -228,7 +300,7 @@
             else
               install -d -m 0755 /run/svc-net /run/namae.d /run/bird-services.d
 
-              all=" ${toString names} "
+              all=" ${toString (lib.attrNames config.infra.services)} "
               for f in /run/svc-net/*; do
                 case "$all" in *" ''${f##*/} "*) ;; *) rm -f "$f" ;; esac
               done
