@@ -16,7 +16,10 @@
       };
 
       infra.services.clinal = {
-        allow = [ { domain = "pve.kn"; port = 2222; } ];
+        allow = [
+          { domain = "pve.kn"; port = 2222; }
+          { domain = "shtu.kn"; }
+        ];
         flags = [ "--system-call-filter=seccomp" "--system-call-filter=bpf" ];
         mounts."/run/secrets" = { };
         config = { pkgs, ... }@args: {
