@@ -3,23 +3,7 @@
     type = "nixos";
     module = withSystem "x86_64-linux" ({ inputs', ... }: { config, pkgs, lib, node, name, ... }: let
       template = pkgs.writeText "sing-box-template.json" (lib.generators.toJSON {} {
-        route.rule_set = [
-          {
-            type = "local";
-            tag = "s_geoip-cn";
-            format = "binary";
-            path = "${pkgs.sing-geoip}/share/sing-box/rule-set/geoip-cn.srs";
-          }
-          {
-            type = "local";
-            tag = "s_geosite-cn";
-            format = "binary";
-            path = "${pkgs.sing-geosite}/share/sing-box/rule-set/geosite-geolocation-cn.srs";
-          }
-        ];
-
         experimental.clash_api.external_controller = "127.0.0.1:9090";
-
         services = [
           {
             type = "api";
@@ -28,6 +12,38 @@
             listen_port = 9091;
           }
         ];
+
+        route = {
+          rule_set = [
+            {
+              type = "local";
+              tag = "s_geoip-cn";
+              format = "binary";
+              path = "${pkgs.sing-geoip}/share/sing-box/rule-set/geoip-cn.srs";
+            }
+            {
+              type = "local";
+              tag = "s_geosite-cn";
+              format = "binary";
+              path = "${pkgs.sing-geosite}/share/sing-box/rule-set/geosite-geolocation-cn.srs";
+            }
+          ];
+
+          rules = [
+            { action = "sniff"; }
+            { action =  "hijack-dns"; protocol = "dns"; }
+            { rule_set = "s_geoip-cn"; outbound = "s_direct"; }
+            { rule_set = "s_geosite-cn"; outbound = "s_direct"; }
+            { ip_is_private = true; outbound = "s_direct"; }
+
+            { domain = "la13-idrive.kagari.org"; outbound = "s_direct"; }
+            { domain = "sg01-idrive.kagari.org"; outbound = "s_direct"; }
+          ];
+          final = "s_out";
+          auto_detect_interface = true;
+          # resolve domains of outbound addresses
+          default_domain_resolver = "s_local";
+        };
 
         dns = {
           servers = [
@@ -94,23 +110,6 @@
             listen_port = 7897;
           }
         ];
-
-        route = {
-          rules = [
-            { action = "sniff"; }
-            { action =  "hijack-dns"; protocol = "dns"; }
-            { rule_set = "s_geoip-cn"; outbound = "s_direct"; }
-            { rule_set = "s_geosite-cn"; outbound = "s_direct"; }
-            { ip_is_private = true; outbound = "s_direct"; }
-
-            { domain = "la13-idrive.kagari.org"; outbound = "s_direct"; }
-            { domain = "sg01-idrive.kagari.org"; outbound = "s_direct"; }
-          ];
-          final = "s_out";
-          auto_detect_interface = true;
-          # resolve domains of outbound addresses
-          default_domain_resolver = "s_local";
-        };
       });
     in {
       config = lib.mkIf node.singbox.enable {
